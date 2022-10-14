@@ -3,6 +3,7 @@ package controllers
 import (
 	"GoServer/models"
 	"encoding/json"
+	"strconv"
 
 	beego "github.com/beego/beego/v2/server/web"
 )
@@ -18,10 +19,12 @@ type UserController struct {
 // @Success 200 {int64} models.User.Id
 // @Failure 403 body is empty
 // @router / [post]
-func (u *UserController) Post() {
+func (u *UserController) Register() {
 	var user models.User
 	json.Unmarshal(u.Ctx.Input.RequestBody, &user)
 	uid := models.AddUser(user)
+	u.Ctx.SetCookie("userid", strconv.Itoa(int(uid)), 86400, "/")
+	u.Ctx.SetCookie("username", user.Username, 86400, "/")
 	u.Data["json"] = map[string]int64{"uid": uid}
 	u.ServeJSON()
 }
@@ -102,6 +105,9 @@ func (u *UserController) Login() {
 	password := u.GetString("password")
 	if models.Login(username, password) {
 		u.Data["json"] = "login success"
+		user, _ := models.GetUserByName(username)
+		u.Ctx.SetCookie("userid", strconv.Itoa(int(user.Id)), 86400, "/")
+		u.Ctx.SetCookie("username", username, 86400, "/")
 	} else {
 		u.Data["json"] = "user not exist"
 	}
@@ -114,5 +120,7 @@ func (u *UserController) Login() {
 // @router /logout [get]
 func (u *UserController) Logout() {
 	u.Data["json"] = "logout success"
+	u.Ctx.SetCookie("userid", u.Ctx.GetCookie("userid"), -1, "/")
+	u.Ctx.SetCookie("username", u.Ctx.GetCookie("username"), -1, "/")
 	u.ServeJSON()
 }

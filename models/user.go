@@ -38,6 +38,15 @@ func GetUser(uid int64) (u *User, err error) {
 	return nil, errors.New("User not exists")
 }
 
+func GetUserByName(username string) (u *User, err error) {
+	for _, u := range UserList {
+		if u.Username == username {
+			return u, nil
+		}
+	}
+	return nil, errors.New("User not exists")
+}
+
 func GetAllUsers() map[int64]*User {
 	return UserList
 }
