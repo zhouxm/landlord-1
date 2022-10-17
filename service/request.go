@@ -26,10 +26,10 @@ func wsRequest(data []interface{}, client *Client) {
 		}
 
 	case ReqLogin:
-		client.sendMsg([]interface{}{ResLogin, client.UserInfo.UserId, client.UserInfo.Username})
+		client.sendMsg([]interface{}{RespLogin, client.UserInfo.UserId, client.UserInfo.Username})
 
 	case ReqRoomList:
-		client.sendMsg([]interface{}{ResRoomList})
+		client.sendMsg([]interface{}{RespRoomList})
 
 	case ReqTableList:
 		client.sendRoomTables()
@@ -53,7 +53,7 @@ func wsRequest(data []interface{}, client *Client) {
 					res = append(res, [2]int{int(table.TableId), len(table.TableClients)})
 				}
 			}
-			client.sendMsg([]interface{}{ResJoinRoom, res})
+			client.sendMsg([]interface{}{RespJoinRoom, res})
 		}
 
 	case ReqNewTable:
@@ -114,7 +114,7 @@ func wsRequest(data []interface{}, client *Client) {
 		}
 		client.IsCalled = true
 		callEnd := score == 3 || client.Table.allCalled()
-		userCall := []interface{}{ResCallScore, client.UserInfo.UserId, score, callEnd}
+		userCall := []interface{}{RespCallScore, client.UserInfo.UserId, score, callEnd}
 		for _, c := range client.Table.TableClients {
 			c.sendMsg(userCall)
 		}
@@ -151,7 +151,7 @@ func wsRequest(data []interface{}, client *Client) {
 							shotPokers = append(shotPokers, poker)
 						} else {
 							logs.Warn("player[%d] play non-exist poker", client.UserInfo.UserId)
-							res := []interface{}{ResShotPoker, client.UserInfo.UserId, []int{}}
+							res := []interface{}{RespShotPoker, client.UserInfo.UserId, []int{}}
 							for _, c := range client.Table.TableClients {
 								c.sendMsg(res)
 							}
@@ -163,7 +163,7 @@ func wsRequest(data []interface{}, client *Client) {
 					compareRes, isMulti := ComparePoker(client.Table.GameManage.LastShotPoker, shotPokers)
 					if client.Table.GameManage.LastShotClient != client && compareRes < 1 {
 						logs.Warn("player[%d] shot poker %v small than last shot poker %v ", client.UserInfo.UserId, shotPokers, client.Table.GameManage.LastShotPoker)
-						res := []interface{}{ResShotPoker, client.UserInfo.UserId, []int{}}
+						res := []interface{}{RespShotPoker, client.UserInfo.UserId, []int{}}
 						for _, c := range client.Table.TableClients {
 							c.sendMsg(res)
 						}
@@ -184,7 +184,7 @@ func wsRequest(data []interface{}, client *Client) {
 						}
 					}
 				}
-				res := []interface{}{ResShotPoker, client.UserInfo.UserId, shotPokers}
+				res := []interface{}{RespShotPoker, client.UserInfo.UserId, shotPokers}
 				for _, c := range client.Table.TableClients {
 					c.sendMsg(res)
 				}

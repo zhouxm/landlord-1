@@ -3,7 +3,6 @@ package routers
 import (
 	"GoServer/controllers"
 	"GoServer/service"
-
 	beego "github.com/beego/beego/v2/server/web"
 )
 

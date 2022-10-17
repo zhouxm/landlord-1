@@ -1,45 +1,45 @@
 package service
 
 const (
-	ReqCheat = 1
-	ResCheat = 2
+	ReqCheat  = 1
+	RespCheat = 2
 
-	ReqLogin = 11
-	ResLogin = 12
+	ReqLogin  = 11
+	RespLogin = 12
 
-	ReqRoomList = 13
-	ResRoomList = 14
+	ReqRoomList  = 13
+	RespRoomList = 14
 
-	ReqTableList = 15
-	ResTableList = 16
+	ReqTableList  = 15
+	RespTableList = 16
 
-	ReqJoinRoom = 17
-	ResJoinRoom = 18
+	ReqJoinRoom  = 17
+	RespJoinRoom = 18
 
-	ReqJoinTable = 19
-	ResJoinTable = 20
+	ReqJoinTable  = 19
+	RespJoinTable = 20
 
-	ReqNewTable = 21
-	ResNewTable = 22
+	ReqNewTable  = 21
+	RespNewTable = 22
 
-	ReqDealPoker = 31
-	ResDealPoker = 32
+	ReqDealPoker  = 31
+	RespDealPoker = 32
 
-	ReqCallScore = 33
-	ResCallScore = 34
+	ReqCallScore  = 33
+	RespCallScore = 34
 
-	ReqShowPoker = 35
-	ResShowPoker = 36
+	ReqShowPoker  = 35
+	RespShowPoker = 36
 
-	ReqShotPoker = 37
-	ResShotPoker = 38
+	ReqShotPoker  = 37
+	RespShotPoker = 38
 
-	ReqGameOver = 41
-	ResGameOver = 42
+	ReqGameOver  = 41
+	RespGameOver = 42
 
-	ReqChat = 43
-	ResChat = 44
+	ReqChat  = 43
+	RespChat = 44
 
-	ReqRestart = 45
-	ResRestart = 46
+	ReqRestart  = 45
+	RespRestart = 46
 )

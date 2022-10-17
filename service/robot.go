@@ -26,7 +26,7 @@ func (c *Client) runRobot() {
 			if act, ok := msg[0].(int); ok {
 				protocolCode := int(act)
 				switch protocolCode {
-				case ResDealPoker:
+				case RespDealPoker:
 					time.Sleep(time.Second)
 					c.Table.Lock.RLock()
 					if c.Table.GameManage.FirstCallScore == c {
@@ -34,7 +34,7 @@ func (c *Client) runRobot() {
 					}
 					c.Table.Lock.RUnlock()
 
-				case ResCallScore:
+				case RespCallScore:
 					if len(msg) < 4 {
 						logs.Error("ResCallScore msg err:%v", msg)
 						return
@@ -53,7 +53,7 @@ func (c *Client) runRobot() {
 					}
 					c.Table.Lock.RUnlock()
 
-				case ResShotPoker:
+				case RespShotPoker:
 					time.Sleep(time.Second)
 					c.Table.Lock.RLock()
 					if c.Table.GameManage.Turn == c {
@@ -61,7 +61,7 @@ func (c *Client) runRobot() {
 					}
 					c.Table.Lock.RUnlock()
 
-				case ResShowPoker:
+				case RespShowPoker:
 					time.Sleep(time.Second)
 					//logs.Debug("robot [%v] role [%v] receive message ResShowPoker turn :%v", c.UserInfo.Username, c.UserInfo.Role, c.Table.GameManage.Turn.UserInfo.Username)
 					c.Table.Lock.RLock()
@@ -69,7 +69,7 @@ func (c *Client) runRobot() {
 						c.autoShotPoker()
 					}
 					c.Table.Lock.RUnlock()
-				case ResGameOver:
+				case RespGameOver:
 					c.Ready = true
 				}
 			}

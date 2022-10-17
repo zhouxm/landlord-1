@@ -53,7 +53,7 @@ func (table *Table) gameOver(client *Client) {
 	coin := table.Creator.Room.EntranceFee * table.GameManage.MaxCallScore * table.GameManage.Multiple
 	table.State = GameEnd
 	for _, c := range table.TableClients {
-		res := []interface{}{ResGameOver, client.UserInfo.UserId}
+		res := []interface{}{RespGameOver, client.UserInfo.UserId}
 		if client == c {
 			res = append(res, coin*2-100)
 		} else {
@@ -86,7 +86,7 @@ func (table *Table) callEnd() {
 	for _, poker := range table.GameManage.Pokers {
 		landLord.HandPokers = append(landLord.HandPokers, poker)
 	}
-	res := []interface{}{ResShowPoker, landLord.UserInfo.UserId, table.GameManage.Pokers}
+	res := []interface{}{RespShowPoker, landLord.UserInfo.UserId, table.GameManage.Pokers}
 	for _, c := range table.TableClients {
 		c.sendMsg(res)
 	}
@@ -175,7 +175,7 @@ func (table *Table) dealPoker() {
 		}
 	}
 	response := make([]interface{}, 0, 3)
-	response = append(append(append(response, ResDealPoker), table.GameManage.FirstCallScore.UserInfo.UserId), nil)
+	response = append(append(append(response, RespDealPoker), table.GameManage.FirstCallScore.UserInfo.UserId), nil)
 	for _, client := range table.TableClients {
 		sort.Ints(client.HandPokers)
 		response[len(response)-1] = client.HandPokers
@@ -184,7 +184,7 @@ func (table *Table) dealPoker() {
 }
 
 func (table *Table) chat(client *Client, msg string) {
-	res := []interface{}{ResChat, client.UserInfo.UserId, msg}
+	res := []interface{}{RespChat, client.UserInfo.UserId, msg}
 	for _, c := range table.TableClients {
 		c.sendMsg(res)
 	}
@@ -203,7 +203,7 @@ func (table *Table) reset() {
 	}
 	table.State = GameCallScore
 	if table.Creator != nil {
-		table.Creator.sendMsg([]interface{}{ResRestart})
+		table.Creator.sendMsg([]interface{}{RespRestart})
 	}
 	for _, c := range table.TableClients {
 		c.reset()
@@ -229,7 +229,7 @@ func (table *Table) ShufflePokers() {
 func (table *Table) syncUser() {
 	logs.Debug("sync user")
 	response := make([]interface{}, 0, 3)
-	response = append(append(response, ResJoinTable), table.TableId)
+	response = append(append(response, RespJoinTable), table.TableId)
 	tableUsers := make([][2]interface{}, 0, 2)
 	current := table.Creator
 	for i := 0; i < len(table.TableClients); i++ {

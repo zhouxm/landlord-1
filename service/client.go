@@ -70,7 +70,7 @@ func (c *Client) sendRoomTables() {
 			res = append(res, [2]int{int(table.TableId), len(table.TableClients)})
 		}
 	}
-	c.sendMsg([]interface{}{ResTableList, res})
+	c.sendMsg([]interface{}{RespTableList, res})
 }
 
 func (c *Client) sendMsg(msg []interface{}) {
