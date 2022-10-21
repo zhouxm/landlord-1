@@ -12,8 +12,9 @@ PG.NetPlayer.prototype.pushAPoker = function (poker) {
 };
 
 PG.NetPlayer.prototype.removeAPoker = function (pid) {
-    for (var i = this.pokerInHand.length - 1; i >= 0; i--) {
-        if (this.pokerInHand[i] === pid) {
+    let i;
+    for (i = this.pokerInHand.length - 1; i >= 0; i--) {
+        if (this.pokerInHand[i] == pid) {
             this.pokerInHand.splice(i, 1);
             break
         }
@@ -21,8 +22,8 @@ PG.NetPlayer.prototype.removeAPoker = function (pid) {
     if (i == -1) {
         this.pokerInHand.pop();
     }
-    for (var i = this._pokerPic.length - 1; i >= 0; i--) {
-        if (this._pokerPic[i].id === pid) {
+    for (i = this._pokerPic.length - 1; i >= 0; i--) {
+        if (this._pokerPic[i].id == pid) {
             this._pokerPic.splice(i, 1);
             break
         }
@@ -41,14 +42,14 @@ PG.NetPlayer.prototype.arrangePoker = function () {
 };
 
 PG.NetPlayer.prototype.replacePoker = function (pokers, start) {
-    if (this.pokerInHand.length !== pokers.length - start) {
+    if (this.pokerInHand.length != pokers.length - start) {
         console.log("ERROR ReplacePoker:", this.pokerInHand, pokers);
     }
-    if (this._pokerPic.length !== pokers.length - start) {
+    if (this._pokerPic.length != pokers.length - start) {
         console.log("ERROR ReplacePoker:", this._pokerPic, pokers);
     }
-    var length = this.pokerInHand.length;
-    for (var i = 0; i < length; i++) {
+    const length = this.pokerInHand.length;
+    for (let i = 0; i < length; i++) {
         this.pokerInHand[i] = pokers[start + i];
         this._pokerPic[i].id = pokers[start + i];
         this._pokerPic[i].frame = pokers[start + i];
@@ -56,7 +57,7 @@ PG.NetPlayer.prototype.replacePoker = function (pokers, start) {
 };
 
 PG.NetPlayer.prototype.findAPoker = function (pid) {
-    for (var i = this._pokerPic.length - 1; i >= 0; i--) {
+    for (let i = this._pokerPic.length - 1; i >= 0; i--) {
         if (this._pokerPic[i].id == pid) {
             return this._pokerPic[i];
         }
@@ -66,10 +67,10 @@ PG.NetPlayer.prototype.findAPoker = function (pid) {
 
 PG.NetPlayer.prototype.reDealPoker = function () {
     this.sortPoker();
-    var length = this.pokerInHand.length;
-    for (var i = 0; i < length; i++) {
-        var pid = this.pokerInHand[i];
-        var p = this.findAPoker(pid);
+    const length = this.pokerInHand.length;
+    for (let i = 0; i < length; i++) {
+        const pid = this.pokerInHand[i];
+        const p = this.findAPoker(pid);
         p.bringToTop();
         this.dealPokerAnim(p, this.seat == 1 ? length-1-i : i);
     }
@@ -77,17 +78,17 @@ PG.NetPlayer.prototype.reDealPoker = function () {
 
 PG.NetPlayer.prototype.cleanPokers = function () {
 
-    var length = this.pokerInHand.length;
-    for (var i = 0; i < length; i++) {
-        var pid = this.pokerInHand[i];
-        var p = this.findAPoker(pid);
+    const length = this.pokerInHand.length;
+    for (let i = 0; i < length; i++) {
+        const pid = this.pokerInHand[i];
+        const p = this.findAPoker(pid);
         p.kill();
         }
     this.pokerInHand = [];
 }
 
 PG.NetPlayer.prototype.dealPokerAnim = function (p, i) {
-    var width = this.game.world.width;
+    const width = this.game.world.width;
     if (p.id > 53) {
         this.game.add.tween(p).to({
             x: this.seat == 1 ? width - PG.PW/2 : PG.PW/2,
@@ -103,12 +104,12 @@ PG.NetPlayer.prototype.dealPokerAnim = function (p, i) {
 
 PG.NetPlayer.prototype.initUI = function (sx, sy) {
     PG.Player.prototype.initUI.call(this, sx, sy);
-    var style = {font: "22px Arial", fill: "#ffffff", align: "center"};
+    let style = {font: "22px Arial", fill: "#ffffff", align: "center"};
     this.uiLeftPoker = this.game.add.text(sx, sy + PG.PH + 10, '17', style);
     this.uiLeftPoker.anchor.set(0.5, 0);
     this.uiLeftPoker.kill();
 
-    var style = {font: "20px Arial", fill: "#c8c8c8", align: "center"};
+    style = {font: "20px Arial", fill: "#c8c8c8", align: "center"};
     if (this.seat == 1) {
         this.uiName = this.game.add.text(sx - 40, sy - 80, '等待玩家加入', style);
         this.uiName.anchor.set(1, 0);
@@ -129,7 +130,7 @@ PG.NetPlayer.prototype.updateInfo = function (uid, name) {
 };
 
 PG.NetPlayer.prototype.updateLeftPoker = function () {
-    var len = this.pokerInHand.length;
+    const len = this.pokerInHand.length;
     if (len > 0) {
         this.uiLeftPoker.text = "" + this.pokerInHand.length;
         this.uiLeftPoker.revive();

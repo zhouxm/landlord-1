@@ -29,7 +29,7 @@ func (c *HomeController) Get() {
 		logs.Error("user request Index - json marsha1 user %v ,err:%v", user, err)
 		return
 	}
-	c.Data["user"] = res
+	c.Data["user"] = string(res)
 	c.Data["port"] = "8081"
 	c.Render()
 }

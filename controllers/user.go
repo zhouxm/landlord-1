@@ -93,14 +93,14 @@ func (u *UserController) Delete() {
 	u.ServeJSON()
 }
 
-// @Title Login
+// @Title LoginGet
 // @Description Logs user into the system
 // @Param	username		query 	string	true		"The username for login"
 // @Param	password		query 	string	true		"The password for login"
 // @Success 200 {string} login success
 // @Failure 403 user not exist
-// @router /login [get]
-func (u *UserController) Login() {
+// @router /LoginGet [get]
+func (u *UserController) LoginGet() {
 	username := u.GetString("username")
 	password := u.GetString("password")
 	if models.Login(username, password) {
@@ -108,6 +108,26 @@ func (u *UserController) Login() {
 		user, _ := models.GetUserByName(username)
 		u.Ctx.SetCookie("userid", strconv.Itoa(int(user.Id)), 86400, "/")
 		u.Ctx.SetCookie("username", username, 86400, "/")
+	} else {
+		u.Data["json"] = "user not exist"
+	}
+	u.ServeJSON()
+}
+
+// @Title Login
+// @Description Logs user into the system
+// @Param	body body 	models.User	true		"body for user content"
+// @Success 200 {string} login success
+// @Failure 403 403 body is empty
+// @router /login [post]
+func (u *UserController) Login() {
+	var user models.User
+	json.Unmarshal(u.Ctx.Input.RequestBody, &user)
+	if models.Login(user.Username, user.Password) {
+		u.Data["json"] = "login success"
+		user, _ := models.GetUserByName(user.Username)
+		u.Ctx.SetCookie("userid", strconv.Itoa(int(user.Id)), 86400, "/")
+		u.Ctx.SetCookie("username", user.Username, 86400, "/")
 	} else {
 		u.Data["json"] = "user not exist"
 	}

@@ -16,13 +16,13 @@ func init() {
 }
 
 type User struct {
-	Id         int64
-	Email      string
-	Username   string
-	Password   string
-	Coin       int
-	CreateDate string
-	UpdateDate string
+	Id         int64  `json:"id"`
+	Email      string `json:"email"`
+	Username   string `json:"username"`
+	Password   string `json:"password"`
+	Coin       int    `json:"coin"`
+	CreateDate string `json:"create_date"`
+	UpdateDate string `json:"update_date"`
 }
 
 func AddUser(u User) int64 {

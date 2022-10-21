@@ -48,27 +48,28 @@ PG.Socket = {
     onmessage: null
 };
 
-PG.Socket.connect = function(onopen, onmessage, onerror) {
+PG.Socket.connect = function(onOpen, onMessage, onError) {
+    // console.log("PG Socket connect called")
 
     if (this.websocket != null) {
         return;
     }
 
     if (localStorage.hasOwnProperty("port")){
-        this.websocket = new WebSocket("ws://" + window.location.host +":" + localStorage.getItem("port") + "/ws");
+        this.websocket = new WebSocket("ws://" + window.location.host + "/ws");
     } else {
         this.websocket = new WebSocket("ws://" + window.location.host + "/ws");
     }
 
     this.websocket.binaryType = 'arraybuffer';
     this.websocket.onopen = function(evt) {
-        console.log("CONNECTED");
-        onopen();
+        // console.log("CONNECTED");
+        onOpen();
     };
     
     this.websocket.onerror = function(evt) { 
-        console.log('CONNECT ERROR: ' + evt.data); 
-        onerror();
+        // console.log('CONNECT ERROR: ' + evt.data);
+        onError();
     };
     
     this.websocket.onclose = function(evt) {
@@ -77,12 +78,12 @@ PG.Socket.connect = function(onopen, onmessage, onerror) {
     };
 
     this.websocket.onmessage = function(evt) {
-        console.log('RSP: ' + evt.data);
-        onmessage(JSON.parse(evt.data));
+        console.log('websocket.onMessage:' + evt.data);
+        onMessage(JSON.parse(evt.data));
     };
 };
 
 PG.Socket.send = function(msg) {
-    console.log('REQ: ' + msg);
+    console.log('websocket.send:' + msg);
     this.websocket.send(JSON.stringify(msg));
 };

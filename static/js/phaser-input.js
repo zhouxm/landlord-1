@@ -618,7 +618,7 @@ var PhaserInput;
         };
         InputBox.prototype.drawBox = function () {
             this.clear()
-                .beginFill(this.bgColor, this.boxAlpha)
+                .beginFill(this.bgColor)
                 .lineStyle(this.borderWidth, this.borderColor, this.boxAlpha);
             if (this.borderRadius > 0) {
                 this.drawRoundedRect(0, 0, this.boxWidth, this.boxHeight, this.borderRadius);
@@ -643,7 +643,7 @@ var PhaserInput;
         SelectionHighlight.prototype.updateSelection = function (rect) {
             var color = Phaser.Color.webToColor(this.inputOptions.selectionColor);
             this.clear();
-            this.beginFill(SelectionHighlight.rgb2hex(color), color.a);
+            this.beginFill(SelectionHighlight.rgb2hex(color));
             this.drawRect(rect.x, rect.y, rect.width, rect.height - this.inputOptions.padding);
         };
         SelectionHighlight.rgb2hex = function (color) {

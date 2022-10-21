@@ -1,11 +1,11 @@
 ﻿PG = {
     music: null,
     playerInfo: {},
-    orientated: false
+    orientated: false,
 };
 
 PG.getCookie = function (name) {
-    var r = document.cookie.match("\\b" + name + "=([^;]*)\\b");
+    const r = document.cookie.match("\\b" + name + "=([^;]*)\\b");
     return r ? r[1] : undefined;
 };
 
@@ -28,7 +28,7 @@ PG.Boot = {
     onSizeChange: function () {
         this.scale.minWidth = 480;
         this.scale.minHeight = 270;
-        var device = this.game.device;
+        const device = this.game.device;
         if (device.android || device.iOS) {
             this.scale.maxWidth = window.innerWidth;
             this.scale.maxHeight = window.innerHeight;
@@ -73,7 +73,8 @@ PG.Preloader = {
 
     create: function () {
         PG.RuleList = this.cache.getJSON('rule');
-        var jsonVal = document.getElementById("user").value;
+        const jsonVal = document.getElementById("user").value;
+        console.log("boot Preloader create:", jsonVal);
         if (jsonVal) {
             PG.playerInfo = JSON.parse(jsonVal);
             if (PG.playerInfo['uid']) {
@@ -94,23 +95,23 @@ PG.Preloader = {
 PG.MainMenu = {
     create: function () {
         this.stage.backgroundColor = '#182d3b';
-        var bg = this.game.add.sprite(this.game.width / 2, 0, 'bg');
+        const bg = this.game.add.sprite(this.game.width / 2, 0, 'bg');
         bg.anchor.set(0.5, 0);
 
-        var aiRoom = this.game.add.button(this.game.world.width / 2, this.game.world.height / 4, 'btn', this.gotoAiRoom, this, 'quick.png', 'quick.png', 'quick.png');
+        let aiRoom = this.game.add.button(this.game.world.width / 2, this.game.world.height / 4, 'btn', this.gotoAiRoom, this, 'quick.png', 'quick.png', 'quick.png');
         aiRoom.anchor.set(0.5);
         this.game.world.add(aiRoom);
 
-        var humanRoom = this.game.add.button(this.game.world.width / 2, this.game.world.height / 2, 'btn', this.gotoRoom, this, 'start.png', 'start.png', 'start.png');
+        let humanRoom = this.game.add.button(this.game.world.width / 2, this.game.world.height / 2, 'btn', this.gotoRoom, this, 'start.png', 'start.png', 'start.png');
         humanRoom.anchor.set(0.5);
         this.game.world.add(humanRoom);
 
-        var setting = this.game.add.button(this.game.world.width / 2, this.game.world.height * 3 / 4, 'btn', this.gotoSetting, this, 'setting.png', 'setting.png', 'setting.png');
-        setting.anchor.set(0.5);
-        this.game.world.add(setting);
+        // let setting = this.game.add.button(this.game.world.width / 2, this.game.world.height * 3 / 4, 'btn', this.gotoSetting, this, 'setting.png', 'setting.png', 'setting.png');
+        // setting.anchor.set(0.5);
+        // this.game.world.add(setting);
 
-        var style = {font: "28px Arial", fill: "#fff", align: "right"};
-        var text = this.game.add.text(this.game.world.width - 4, 4, "欢迎回来 " + PG.playerInfo.username, style);
+        const style = {font: "28px Arial", fill: "#fff", align: "right"};
+        let text = this.game.add.text(this.game.world.width - 4, 4, "欢迎回来 " + PG.playerInfo.username, style);
         text.addColor('#cc00cc', 4);
         text.anchor.set(1, 0);
     },
@@ -126,9 +127,9 @@ PG.MainMenu = {
     },
 
     gotoSetting: function () {
-        var style = {font: "22px Arial", fill: "#fff", align: "center"};
-        var text = this.game.add.text(0, 0, "hei hei hei hei", style);
-        var tween = this.game.add.tween(text).to({x: 600, y: 450}, 2000, "Linear", true);
+        const style = {font: "22px Arial", fill: "#fff", align: "center"};
+        const text = this.game.add.text(0, 0, "hei hei hei hei", style);
+        const tween = this.game.add.tween(text).to({x: 600, y: 450}, 2000, "Linear", true);
         tween.onComplete.add(Phaser.Text.prototype.destroy, text);
     }
 };
@@ -136,10 +137,10 @@ PG.MainMenu = {
 PG.Login = {
     create: function () {
         this.stage.backgroundColor = '#182d3b';
-        var bg = this.game.add.sprite(this.game.width / 2, 0, 'bg');
+        const bg = this.game.add.sprite(this.game.width / 2, 0, 'bg');
         bg.anchor.set(0.5, 0);
 
-        var style = {
+        let style = {
             font: '24px Arial', fill: '#000', width: 300, padding: 12,
             borderWidth: 1, borderColor: '#c8c8c8', borderRadius: 2,
             textAlign: 'center', placeHolder: '姓名'
@@ -155,11 +156,11 @@ PG.Login = {
         style.placeHolder = '再次输入密码';
         this.passwordAgain = this.game.add.inputField((this.game.world.width - 300) / 2, this.game.world.centerY - 15, style);
 
-        var style = {font: "22px Arial", fill: "#f00", align: "center"};
+        style = {font: "22px Arial", fill: "#f00", align: "center"};
         this.errorText = this.game.add.text(this.game.world.centerX, this.game.world.centerY + 45, '', style);
         this.errorText.anchor.set(0.5, 0);
 
-        var login = this.game.add.button(this.game.world.centerX, this.game.world.centerY + 100, 'btn', this.onLogin, this, 'register.png', 'register.png', 'register.png');
+        const login = this.game.add.button(this.game.world.centerX, this.game.world.centerY + 100, 'btn', this.onLogin, this, 'register.png', 'register.png', 'register.png');
         login.anchor.set(0.5);
     },
 
@@ -179,17 +180,17 @@ PG.Login = {
             this.errorText.text = '请再次输入密码';
             return;
         }
-        if (this.password.value != this.passwordAgain.value) {
+        if (this.password.value !== this.passwordAgain.value) {
             this.errorText.text = "两次输入的密码不一致";
             return;
         }
 
-        var httpRequest = new XMLHttpRequest();
-        var that = this;
+        const httpRequest = new XMLHttpRequest();
+        const that = this;
         httpRequest.onreadystatechange = function () {
             if (httpRequest.readyState === XMLHttpRequest.DONE) {
                 if (httpRequest.status === 200) {
-                    if (httpRequest.responseText == '1') {
+                    if (httpRequest.responseText === '1') {
                         that.errorText.text = '该用户名已经被占用';
                     } else {
                         PG.playerInfo = JSON.parse(httpRequest.responseText);
@@ -201,11 +202,18 @@ PG.Login = {
                 }
             }
         };
-        httpRequest.open('POST', '/reg', true);
-        httpRequest.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+        httpRequest.open('POST', '/api/v1/account/login', true);
+        httpRequest.setRequestHeader('Content-Type', 'application/json');
         httpRequest.setRequestHeader('X-Csrftoken', PG.getCookie("_xsrf"));
 
-        var req = 'username=' + encodeURIComponent(this.username.value) + '&password=' + encodeURIComponent(this.password.value);
-        httpRequest.send(req);
+        const body = {username:encodeURIComponent(this.username.value),password: encodeURIComponent(this.password.value)};
+        let data = new FormData()
+        data.append("username",encodeURIComponent(this.username))
+        data.append("password",encodeURIComponent(this.password))
+        const json = {
+            username: 'eve',
+            password: 'cityslicka'
+        }
+        httpRequest.send(JSON.stringify(body));
     }
 };
