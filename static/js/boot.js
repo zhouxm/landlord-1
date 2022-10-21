@@ -202,7 +202,7 @@ PG.Login = {
                 }
             }
         };
-        httpRequest.open('POST', '/api/v1/account/login', true);
+        httpRequest.open('POST', '/api/v1/account/register', true);
         httpRequest.setRequestHeader('Content-Type', 'application/json');
         httpRequest.setRequestHeader('X-Csrftoken', PG.getCookie("_xsrf"));
 
