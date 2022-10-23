@@ -3,6 +3,7 @@
 *.exe~
 *.log
 vendor
+swagger
 
 landlord-go
 go_build_*

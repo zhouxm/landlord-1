@@ -1,6 +1,7 @@
 package service
 
 import (
+	"GoServer/models"
 	"bytes"
 	"encoding/json"
 	"github.com/beego/beego/v2/server/web"
@@ -32,38 +33,31 @@ var (
 	} //不验证origin
 )
 
-type UserInfo struct {
-	UserId   int    `json:"user_id"`
-	Username string `json:"username"`
-	Coin     int    `json:"coin"`
-	Role     int
-}
-
-type Client struct {
+type ClientController struct {
 	web.Controller
 	conn       *websocket.Conn
-	UserInfo   *UserInfo
+	User       *models.Account
 	Room       *Room
 	Table      *Table
 	HandPokers []int
 	Ready      bool
-	IsCalled   bool    //是否叫完分
-	Next       *Client //链表
+	IsCalled   bool              //是否叫完分
+	Next       *ClientController //链表
 	IsRobot    bool
 	toRobot    chan []interface{} //发送给robot的消息
 	toServer   chan []interface{} //robot发送给服务器
 }
 
 //重置状态
-func (c *Client) reset() {
-	c.UserInfo.Role = 1
+func (c *ClientController) reset() {
+	c.User.Role = 1
 	c.HandPokers = make([]int, 0, 21)
 	c.Ready = false
 	c.IsCalled = false
 }
 
 //发送房间内已有的牌桌信息
-func (c *Client) sendRoomTables() {
+func (c *ClientController) sendRoomTables() {
 	res := make([][2]int, 0)
 	for _, table := range c.Room.Tables {
 		if len(table.TableClients) < 3 {
@@ -73,7 +67,7 @@ func (c *Client) sendRoomTables() {
 	c.sendMsg([]interface{}{RespTableList, res})
 }
 
-func (c *Client) sendMsg(msg []interface{}) {
+func (c *ClientController) sendMsg(msg []interface{}) {
 	if c.IsRobot {
 		c.toRobot <- msg
 		return
@@ -108,7 +102,7 @@ func (c *Client) sendMsg(msg []interface{}) {
 }
 
 //关闭客户端
-func (c *Client) close() {
+func (c *ClientController) close() {
 	if c.Table != nil {
 		for _, client := range c.Table.TableClients {
 			if c.Table.Creator == c && c != client {
@@ -130,7 +124,7 @@ func (c *Client) close() {
 			delete(c.Room.Tables, c.Table.TableId)
 			return
 		}
-		delete(c.Table.TableClients, c.UserInfo.UserId)
+		delete(c.Table.TableClients, c.User.Id)
 		if c.Table.State == GamePlaying {
 			c.Table.syncUser()
 			//c.Table.reset()
@@ -142,7 +136,7 @@ func (c *Client) close() {
 	}
 }
 
-func (c *Client) readPump() {
+func (c *ClientController) readPump() {
 
 	c.conn.SetReadLimit(maxMessageSize)
 	c.conn.SetReadDeadline(time.Now().Add(pongWait))
@@ -151,7 +145,7 @@ func (c *Client) readPump() {
 		_, message, err := c.conn.ReadMessage()
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-				logs.Error("websocket user_id[%d] unexpected close error: %v", c.UserInfo.UserId, err)
+				logs.Error("websocket user_id[%d] unexpected close error: %v", c.User.Id, err)
 			}
 			return
 		}
@@ -159,7 +153,7 @@ func (c *Client) readPump() {
 		var data []interface{}
 		err = json.Unmarshal(message, &data)
 		if err != nil {
-			logs.Error("message unmarsha1 err, user_id[%d] err:%v", c.UserInfo.UserId, err)
+			logs.Error("message unmarsha1 err, user_id[%d] err:%v", c.User.Id, err)
 		} else {
 			wsRequest(data, c)
 		}
@@ -167,7 +161,7 @@ func (c *Client) readPump() {
 }
 
 // 心跳
-func (c *Client) Ping() {
+func (c *ClientController) Ping() {
 	ticker := time.NewTicker(pingPeriod)
 	defer func() {
 		ticker.Stop()
@@ -185,22 +179,22 @@ func (c *Client) Ping() {
 	}
 }
 
-func (c *Client) ServeWs() {
+func (c *ClientController) ServeWs() {
 	conn, err := upGrader.Upgrade(c.Ctx.ResponseWriter, c.Ctx.Request, nil)
 	if err != nil {
 		logs.Error("upGrader err:%v", err)
 		return
 	}
-	client := &Client{conn: conn, HandPokers: make([]int, 0, 21), UserInfo: &UserInfo{}}
+	client := &ClientController{conn: conn, HandPokers: make([]int, 0, 21), User: &models.Account{}}
 	if userId, err := strconv.Atoi(c.Ctx.GetCookie("userid")); err != nil {
 		logs.Error(err)
 	} else {
-		client.UserInfo.UserId = userId
+		client.User.Id = userId
 	}
 
 	username := c.Ctx.GetCookie("username")
 	if username != "" {
-		client.UserInfo.Username = username
+		client.User.Username = username
 	}
 
 	go client.readPump()

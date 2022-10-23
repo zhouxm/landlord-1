@@ -1,6 +1,7 @@
 package service
 
 import (
+	"GoServer/models"
 	"fmt"
 	"math/rand"
 	"sort"
@@ -23,8 +24,8 @@ type Table struct {
 	Lock         sync.RWMutex
 	TableId      TableId
 	State        int
-	Creator      *Client
-	TableClients map[int]*Client
+	Creator      *ClientController
+	TableClients map[int]*ClientController
 	GameManage   *GameManage
 }
 
@@ -38,11 +39,11 @@ func (table *Table) allCalled() bool {
 }
 
 //一局结束
-func (table *Table) gameOver(client *Client) {
+func (table *Table) gameOver(client *ClientController) {
 	coin := table.Creator.Room.EntranceFee * table.GameManage.MaxCallScore * table.GameManage.Multiple
 	table.State = GameEnd
 	for _, c := range table.TableClients {
-		res := []interface{}{RespGameOver, client.UserInfo.UserId}
+		res := []interface{}{RespGameOver, client.User.Id}
 		if client == c {
 			res = append(res, coin*2-100)
 		} else {
@@ -51,7 +52,7 @@ func (table *Table) gameOver(client *Client) {
 		for _, cc := range table.TableClients {
 			if cc != c {
 				userPokers := make([]int, 0, len(cc.HandPokers)+1)
-				userPokers = append(append(userPokers, int(cc.UserInfo.UserId)), cc.HandPokers...)
+				userPokers = append(append(userPokers, cc.User.Id), cc.HandPokers...)
 				res = append(res, userPokers)
 			}
 		}
@@ -70,28 +71,28 @@ func (table *Table) callEnd() {
 		//return
 	}
 	landLord := table.GameManage.MaxCallScoreTurn
-	landLord.UserInfo.Role = RoleLandlord
+	landLord.User.Role = RoleLandlord
 	table.GameManage.Turn = landLord
 	for _, poker := range table.GameManage.Pokers {
 		landLord.HandPokers = append(landLord.HandPokers, poker)
 	}
-	res := []interface{}{RespShowPoker, landLord.UserInfo.UserId, table.GameManage.Pokers}
+	res := []interface{}{RespShowPoker, landLord.User.Id, table.GameManage.Pokers}
 	for _, c := range table.TableClients {
 		c.sendMsg(res)
 	}
 }
 
 //客户端加入牌桌
-func (table *Table) joinTable(c *Client) {
+func (table *Table) joinTable(c *ClientController) {
 	table.Lock.Lock()
 	defer table.Lock.Unlock()
 	if len(table.TableClients) > 2 {
-		logs.Error("Player[%d] JOIN Table[%d] FULL", c.UserInfo.UserId, table.TableId)
+		logs.Error("Player[%d] JOIN Table[%d] FULL", c.User.Id, table.TableId)
 		return
 	}
-	logs.Debug("[%v] user [%v] request join table", c.UserInfo.UserId, c.UserInfo.Username)
-	if _, ok := table.TableClients[c.UserInfo.UserId]; ok {
-		logs.Error("[%v] user [%v] already in this table", c.UserInfo.UserId, c.UserInfo.Username)
+	logs.Debug("[%v] user [%v] request join table", c.User.Id, c.User.Username)
+	if _, ok := table.TableClients[c.User.Id]; ok {
+		logs.Error("[%v] user [%v] already in this table", c.User.Id, c.User.Username)
 		return
 	}
 
@@ -103,7 +104,7 @@ func (table *Table) joinTable(c *Client) {
 			break
 		}
 	}
-	table.TableClients[c.UserInfo.UserId] = c
+	table.TableClients[c.User.Id] = c
 	table.syncUser()
 	if len(table.TableClients) == 3 {
 		c.Next = table.Creator
@@ -119,11 +120,11 @@ func (table *Table) joinTable(c *Client) {
 func (table *Table) addRobot(room *Room) {
 	logs.Debug("robot [%v] join table", fmt.Sprintf("ROBOT-%d", len(table.TableClients)))
 	if len(table.TableClients) < 3 {
-		client := &Client{
+		client := &ClientController{
 			Room:       room,
 			HandPokers: make([]int, 0, 21),
-			UserInfo: &UserInfo{
-				UserId:   table.getRobotID(),
+			User: &models.Account{
+				Id:       table.getRobotID(),
 				Username: fmt.Sprintf("ROBOT-%d", len(table.TableClients)),
 				Coin:     10000,
 			},
@@ -164,7 +165,7 @@ func (table *Table) dealPoker() {
 		}
 	}
 	response := make([]interface{}, 0, 3)
-	response = append(append(append(response, RespDealPoker), table.GameManage.FirstCallScore.UserInfo.UserId), nil)
+	response = append(append(append(response, RespDealPoker), table.GameManage.FirstCallScore.User.Id), nil)
 	for _, client := range table.TableClients {
 		sort.Ints(client.HandPokers)
 		response[len(response)-1] = client.HandPokers
@@ -172,8 +173,8 @@ func (table *Table) dealPoker() {
 	}
 }
 
-func (table *Table) chat(client *Client, msg string) {
-	res := []interface{}{RespChat, client.UserInfo.UserId, msg}
+func (table *Table) chat(client *ClientController, msg string) {
+	res := []interface{}{RespChat, client.User.Id, msg}
 	for _, c := range table.TableClients {
 		c.sendMsg(res)
 	}
@@ -202,7 +203,8 @@ func (table *Table) reset() {
 	}
 }
 
-//洗牌
+// ShufflePokers
+// 洗牌
 func (table *Table) ShufflePokers() {
 	logs.Debug("ShufflePokers")
 	r := rand.New(rand.NewSource(time.Now().Unix()))
@@ -222,7 +224,7 @@ func (table *Table) syncUser() {
 	tableUsers := make([][2]interface{}, 0, 2)
 	current := table.Creator
 	for i := 0; i < len(table.TableClients); i++ {
-		tableUsers = append(tableUsers, [2]interface{}{current.UserInfo.UserId, current.UserInfo.Username})
+		tableUsers = append(tableUsers, [2]interface{}{current.User.Id, current.User.Username})
 		current = current.Next
 	}
 	response = append(response, tableUsers)

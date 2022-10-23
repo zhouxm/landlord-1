@@ -5,7 +5,7 @@ import (
 )
 
 //处理websocket请求
-func wsRequest(data []interface{}, client *Client) {
+func wsRequest(data []interface{}, client *ClientController) {
 	defer func() {
 		if r := recover(); r != nil {
 			logs.Error("wsRequest panic:%v ", r)
@@ -21,12 +21,12 @@ func wsRequest(data []interface{}, client *Client) {
 	switch req {
 	case ReqCheat:
 		if len(data) < 2 {
-			logs.Error("user [%d] request ReqCheat ,but missing user id", client.UserInfo.UserId)
+			logs.Error("user [%d] request ReqCheat ,but missing user id", client.User.Id)
 			return
 		}
 
 	case ReqLogin:
-		client.sendMsg([]interface{}{RespLogin, client.UserInfo.UserId, client.UserInfo.Username})
+		client.sendMsg([]interface{}{RespLogin, client.User.Id, client.User.Username})
 
 	case ReqRoomList:
 		client.sendMsg([]interface{}{RespRoomList})
@@ -36,7 +36,7 @@ func wsRequest(data []interface{}, client *Client) {
 
 	case ReqJoinRoom:
 		if len(data) < 2 {
-			logs.Error("user [%d] request join room ,but missing room id", client.UserInfo.UserId)
+			logs.Error("user [%d] request join room ,but missing room id", client.User.Id)
 			return
 		}
 		var roomId int
@@ -83,7 +83,7 @@ func wsRequest(data []interface{}, client *Client) {
 			client.Ready = true
 		}
 	case ReqCallScore:
-		logs.Debug("[%v] ReqCallScore %v", client.UserInfo.Username, data)
+		logs.Debug("[%v] ReqCallScore %v", client.User.Username, data)
 		client.Table.Lock.Lock()
 		defer client.Table.Lock.Unlock()
 
@@ -105,7 +105,7 @@ func wsRequest(data []interface{}, client *Client) {
 		}
 
 		if score > 0 && score < client.Table.GameManage.MaxCallScore || score > 3 {
-			logs.Error("player[%d] call score[%d] cheat", client.UserInfo.UserId, score)
+			logs.Error("player[%d] call score[%d] cheat", client.User.Id, score)
 			return
 		}
 		if score > client.Table.GameManage.MaxCallScore {
@@ -114,7 +114,7 @@ func wsRequest(data []interface{}, client *Client) {
 		}
 		client.IsCalled = true
 		callEnd := score == 3 || client.Table.allCalled()
-		userCall := []interface{}{RespCallScore, client.UserInfo.UserId, score, callEnd}
+		userCall := []interface{}{RespCallScore, client.User.Id, score, callEnd}
 		for _, c := range client.Table.TableClients {
 			c.sendMsg(userCall)
 		}
@@ -123,7 +123,7 @@ func wsRequest(data []interface{}, client *Client) {
 			client.Table.callEnd()
 		}
 	case ReqShotPoker:
-		logs.Debug("user [%v] ReqShotPoker %v", client.UserInfo.Username, data)
+		logs.Debug("user [%v] ReqShotPoker %v", client.User.Username, data)
 		client.Table.Lock.Lock()
 		defer func() {
 			client.Table.GameManage.Turn = client.Next
@@ -131,7 +131,7 @@ func wsRequest(data []interface{}, client *Client) {
 		}()
 
 		if client.Table.GameManage.Turn != client {
-			logs.Error("shot poker err,not your [%d] turn .[%d]", client.UserInfo.UserId, client.Table.GameManage.Turn.UserInfo.UserId)
+			logs.Error("shot poker err,not your [%d] turn .[%d]", client.User.Id, client.Table.GameManage.Turn.User.Id)
 			return
 		}
 		if len(data) > 1 {
@@ -150,8 +150,8 @@ func wsRequest(data []interface{}, client *Client) {
 						if inHand {
 							shotPokers = append(shotPokers, poker)
 						} else {
-							logs.Warn("player[%d] play non-exist poker", client.UserInfo.UserId)
-							res := []interface{}{RespShotPoker, client.UserInfo.UserId, []int{}}
+							logs.Warn("player[%d] play non-exist poker", client.User.Id)
+							res := []interface{}{RespShotPoker, client.User.Id, []int{}}
 							for _, c := range client.Table.TableClients {
 								c.sendMsg(res)
 							}
@@ -162,8 +162,8 @@ func wsRequest(data []interface{}, client *Client) {
 				if len(shotPokers) > 0 {
 					compareRes, isMulti := ComparePoker(client.Table.GameManage.LastShotPoker, shotPokers)
 					if client.Table.GameManage.LastShotClient != client && compareRes < 1 {
-						logs.Warn("player[%d] shot poker %v small than last shot poker %v ", client.UserInfo.UserId, shotPokers, client.Table.GameManage.LastShotPoker)
-						res := []interface{}{RespShotPoker, client.UserInfo.UserId, []int{}}
+						logs.Warn("player[%d] shot poker %v small than last shot poker %v ", client.User.Id, shotPokers, client.Table.GameManage.LastShotPoker)
+						res := []interface{}{RespShotPoker, client.User.Id, []int{}}
 						for _, c := range client.Table.TableClients {
 							c.sendMsg(res)
 						}
@@ -184,7 +184,7 @@ func wsRequest(data []interface{}, client *Client) {
 						}
 					}
 				}
-				res := []interface{}{RespShotPoker, client.UserInfo.UserId, shotPokers}
+				res := []interface{}{RespShotPoker, client.User.Id, shotPokers}
 				for _, c := range client.Table.TableClients {
 					c.sendMsg(res)
 				}

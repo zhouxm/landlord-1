@@ -3,6 +3,7 @@ package controllers
 import (
 	"GoServer/models"
 	"encoding/json"
+	"github.com/beego/beego/v2/core/logs"
 	"strconv"
 
 	beego "github.com/beego/beego/v2/server/web"
@@ -20,7 +21,9 @@ type AccountController struct {
 func (u AccountController) GetAll() {
 	users := models.GetAllUsers()
 	u.Data["json"] = users
-	u.ServeJSON()
+	if err := u.ServeJSON(); err != nil {
+		logs.Warn(err)
+	}
 }
 
 // Get
@@ -30,7 +33,7 @@ func (u AccountController) GetAll() {
 // @Success 200 {object} models.
 // @Failure 403 :uid is empty
 func (u AccountController) Get() {
-	uid, _ := u.GetInt64(":uid")
+	uid, _ := u.GetInt(":uid")
 	if uid != 0 {
 		user, err := models.GetUser(uid)
 		if err != nil {
@@ -39,7 +42,9 @@ func (u AccountController) Get() {
 			u.Data["json"] = user
 		}
 	}
-	u.ServeJSON()
+	if err := u.ServeJSON(); err != nil {
+		logs.Warn(err)
+	}
 }
 
 // Register
@@ -52,10 +57,12 @@ func (u AccountController) Register() {
 	var account models.Account
 	json.Unmarshal(u.Ctx.Input.RequestBody, &account)
 	uid := models.AddUser(account)
-	u.Ctx.SetCookie("userid", strconv.Itoa(int(uid)), 86400, "/")
+	u.Ctx.SetCookie("userid", strconv.Itoa(uid), 86400, "/")
 	u.Ctx.SetCookie("username", account.Username, 86400, "/")
-	u.Data["json"] = map[string]int64{"uid": uid}
-	u.ServeJSON()
+	u.Data["json"] = map[string]int{"uid": uid}
+	if err := u.ServeJSON(); err != nil {
+		logs.Warn(err)
+	}
 }
 
 //
@@ -98,7 +105,9 @@ func (u AccountController) Login() {
 	} else {
 		u.Data["json"] = "user not exist"
 	}
-	u.ServeJSON()
+	if err := u.ServeJSON(); err != nil {
+		logs.Warn(err)
+	}
 }
 
 // Logout
@@ -109,5 +118,7 @@ func (u AccountController) Logout() {
 	u.Data["json"] = "logout success"
 	u.Ctx.SetCookie("userid", u.Ctx.GetCookie("userid"), -1, "/")
 	u.Ctx.SetCookie("username", u.Ctx.GetCookie("username"), -1, "/")
-	u.ServeJSON()
+	if err := u.ServeJSON(); err != nil {
+		logs.Warn(err)
+	}
 }

@@ -6,7 +6,7 @@ import (
 	"github.com/beego/beego/v2/core/logs"
 )
 
-func (c *Client) runRobot() {
+func (c *ClientController) runRobot() {
 	for {
 		select {
 		case msg, ok := <-c.toServer:
@@ -18,14 +18,14 @@ func (c *Client) runRobot() {
 			if !ok {
 				return
 			}
-			logs.Debug("robot [%v] receive  message %v ", c.UserInfo.Username, msg)
+			logs.Debug("robot [%v] receive  message %v ", c.User.Username, msg)
 			if len(msg) < 1 {
-				logs.Error("send to robot [%v],message err ,%v", c.UserInfo.Username, msg)
+				logs.Error("send to robot [%v],message err ,%v", c.User.Username, msg)
 				return
 			}
 			if act, ok := msg[0].(int); ok {
-				protocolCode := int(act)
-				switch protocolCode {
+				//protocolCode := act
+				switch act {
 				case RespDealPoker:
 					time.Sleep(time.Second)
 					c.Table.Lock.RLock()
@@ -45,7 +45,7 @@ func (c *Client) runRobot() {
 						var callEnd bool
 						logs.Debug("ResCallScore %t", msg[3])
 						if res, ok := msg[3].(bool); ok {
-							callEnd = bool(res)
+							callEnd = res
 						}
 						if !callEnd {
 							c.autoCallScore()
@@ -63,9 +63,9 @@ func (c *Client) runRobot() {
 
 				case RespShowPoker:
 					time.Sleep(time.Second)
-					//logs.Debug("robot [%v] role [%v] receive message ResShowPoker turn :%v", c.UserInfo.Username, c.UserInfo.Role, c.Table.GameManage.Turn.UserInfo.Username)
+					//logs.Debug("robot [%v] role [%v] receive message ResShowPoker turn :%v", c.User.Username, c.User.Role, c.Table.GameManage.Turn.User.Username)
 					c.Table.Lock.RLock()
-					if c.Table.GameManage.Turn == c || (c.Table.GameManage.Turn == nil && c.UserInfo.Role == RoleLandlord) {
+					if c.Table.GameManage.Turn == c || (c.Table.GameManage.Turn == nil && c.User.Role == RoleLandlord) {
 						c.autoShotPoker()
 					}
 					c.Table.Lock.RUnlock()
@@ -78,7 +78,7 @@ func (c *Client) runRobot() {
 }
 
 //自动出牌
-func (c *Client) autoShotPoker() {
+func (c *ClientController) autoShotPoker() {
 	//因为机器人休眠一秒后才出牌，有可能因用户退出而关闭chan
 	defer func() {
 		err := recover()
@@ -86,7 +86,7 @@ func (c *Client) autoShotPoker() {
 			logs.Warn("autoShotPoker err : %v", err)
 		}
 	}()
-	logs.Debug("robot [%v] auto-shot poker", c.UserInfo.Username)
+	logs.Debug("robot [%v] auto-shot poker", c.User.Username)
 	shotPokers := make([]int, 0)
 	if len(c.Table.GameManage.LastShotPoker) == 0 || c.Table.GameManage.LastShotClient == c {
 		shotPokers = append(shotPokers, c.HandPokers[0])
@@ -99,18 +99,18 @@ func (c *Client) autoShotPoker() {
 	}
 	req := []interface{}{float64(ReqShotPoker)}
 	req = append(req, float64Pokers)
-	logs.Debug("robot [%v] autoShotPoker %v", c.UserInfo.Username, float64Pokers)
+	logs.Debug("robot [%v] autoShotPoker %v", c.User.Username, float64Pokers)
 	c.toServer <- req
 }
 
 //自动叫分
-func (c *Client) autoCallScore() {
+func (c *ClientController) autoCallScore() {
 	defer func() {
 		err := recover()
 		if err != nil {
 			logs.Warn("autoCallScore err : %v", err)
 		}
 	}()
-	logs.Debug("robot [%v] autoCallScore", c.UserInfo.Username)
+	logs.Debug("robot [%v] autoCallScore", c.User.Username)
 	c.toServer <- []interface{}{float64(ReqCallScore), float64(3)}
 }
