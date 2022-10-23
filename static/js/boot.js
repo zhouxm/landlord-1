@@ -210,10 +210,6 @@ PG.Login = {
         let data = new FormData()
         data.append("username",encodeURIComponent(this.username))
         data.append("password",encodeURIComponent(this.password))
-        const json = {
-            username: 'eve',
-            password: 'cityslicka'
-        }
         httpRequest.send(JSON.stringify(body));
     }
 };
