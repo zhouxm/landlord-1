@@ -8,19 +8,6 @@ import (
 	"github.com/beego/beego/v2/core/logs"
 )
 
-func write() {
-	path := "rule.json"
-	_, err := os.Stat(path)
-	if err != nil {
-		if os.IsNotExist(err) {
-			generate()
-		} else {
-			logs.Error("rule.json err:%v", err)
-			return
-		}
-	}
-}
-
 //生成连续num个的单牌的顺子
 func generateSeq(num int, seq []string) (res []string) {
 	for i, _ := range seq {
@@ -66,7 +53,7 @@ func combination(seq []string, num int) (comb []string) {
 	return
 }
 
-func generate() {
+func generate(path string) {
 	CARDS := "34567890JQKA2"
 	RULE := map[string][]string{}
 	RULE["single"] = []string{}
@@ -163,7 +150,7 @@ func generate() {
 	if err != nil {
 		panic("json marsha1 RULE err :" + err.Error())
 	}
-	file, err := os.Create("rule.json")
+	file, err := os.Create(path)
 	defer func() {
 		err = file.Close()
 		if err != nil {

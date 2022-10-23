@@ -3,6 +3,7 @@ package service
 import (
 	"bytes"
 	"encoding/json"
+	"github.com/beego/beego/v2/server/web"
 	"net/http"
 	"strconv"
 	"time"
@@ -31,16 +32,15 @@ var (
 	} //不验证origin
 )
 
-type UserId int
-
 type UserInfo struct {
-	UserId   UserId `json:"user_id"`
+	UserId   int    `json:"user_id"`
 	Username string `json:"username"`
 	Coin     int    `json:"coin"`
 	Role     int
 }
 
 type Client struct {
+	web.Controller
 	conn       *websocket.Conn
 	UserInfo   *UserInfo
 	Room       *Room
@@ -142,20 +142,8 @@ func (c *Client) close() {
 	}
 }
 
-//可能是因为版本问题，导致有些未处理的error
 func (c *Client) readPump() {
-	defer func() {
-		//logs.Debug("readPump exit")
-		c.conn.Close()
-		c.close()
-		if c.Room.AllowRobot {
-			if c.Table != nil {
-				for _, client := range c.Table.TableClients {
-					client.close()
-				}
-			}
-		}
-	}()
+
 	c.conn.SetReadLimit(maxMessageSize)
 	c.conn.SetReadDeadline(time.Now().Add(pongWait))
 	c.conn.SetPongHandler(func(string) error { c.conn.SetReadDeadline(time.Now().Add(pongWait)); return nil })
@@ -178,7 +166,7 @@ func (c *Client) readPump() {
 	}
 }
 
-//心跳
+// 心跳
 func (c *Client) Ping() {
 	ticker := time.NewTicker(pingPeriod)
 	defer func() {
@@ -187,46 +175,34 @@ func (c *Client) Ping() {
 	for {
 		select {
 		case <-ticker.C:
-			c.conn.SetWriteDeadline(time.Now().Add(writeWait))
+			if err := c.conn.SetWriteDeadline(time.Now().Add(writeWait)); err != nil {
+				logs.Warn(err)
+			}
 			if err := c.conn.WriteMessage(websocket.PingMessage, nil); err != nil {
-				return
+				logs.Warn(err)
 			}
 		}
 	}
 }
 
-func ServeWs(w http.ResponseWriter, r *http.Request) {
-	conn, err := upGrader.Upgrade(w, r, nil)
+func (c *Client) ServeWs() {
+	conn, err := upGrader.Upgrade(c.Ctx.ResponseWriter, c.Ctx.Request, nil)
 	if err != nil {
-		logs.Error("upgrader err:%v", err)
+		logs.Error("upGrader err:%v", err)
 		return
 	}
 	client := &Client{conn: conn, HandPokers: make([]int, 0, 21), UserInfo: &UserInfo{}}
-	var userId int
-	var username string
-	cookie, err := r.Cookie("userid")
-
-	if err != nil {
-		logs.Error("get cookie err: %v", err)
+	if userId, err := strconv.Atoi(c.Ctx.GetCookie("userid")); err != nil {
+		logs.Error(err)
 	} else {
-		userIdStr := cookie.Value
-		userId, err = strconv.Atoi(userIdStr)
-	}
-	cookie, err = r.Cookie("username")
-
-	if err != nil {
-		logs.Error("get cookie err: %v", err)
-	} else {
-		username = cookie.Value
+		client.UserInfo.UserId = userId
 	}
 
-	if userId != 0 && username != "" {
-		client.UserInfo.UserId = UserId(userId)
+	username := c.Ctx.GetCookie("username")
+	if username != "" {
 		client.UserInfo.Username = username
-		go client.readPump()
-		go client.Ping()
-		return
 	}
-	logs.Error("user need login first")
-	client.conn.Close()
+
+	go client.readPump()
+	go client.Ping()
 }

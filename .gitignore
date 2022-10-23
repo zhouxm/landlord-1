@@ -5,3 +5,4 @@
 vendor
 
 landlord-go
+go_build_*

@@ -2,24 +2,16 @@ package routers
 
 import (
 	"GoServer/controllers"
-	beego "github.com/beego/beego/v2/server/web"
+	"GoServer/service"
+	"github.com/beego/beego/v2/server/web"
 )
 
 func init() {
-	//beego.Router("/", &controllers.HomeController{})
-	//beego.Router("/ws", &service.ServeWs{})
-	ns := beego.NewNamespace("/api/v1",
-		//beego.NSNamespace("/object",
-		//	beego.NSInclude(
-		//		&controllers.ObjectController{},
-		//	),
-		//),
-		//api/v1/account/login
-		beego.NSNamespace("/account",
-			beego.NSInclude(
-				&controllers.AccountController{},
-			),
-		),
-	)
-	beego.AddNamespace(ns)
+	web.CtrlGet("/", controllers.HomeController.Get)
+	web.CtrlGet("/api/v1/account/", controllers.AccountController.GetAll)
+	web.CtrlPost("/api/v1/account/register", controllers.AccountController.Register)
+	web.CtrlPost("/api/v1/account/login", controllers.AccountController.Login)
+	web.CtrlGet("/api/v1/account/logout", controllers.AccountController.Logout)
+	web.CtrlGet("/ws", (*service.Client).ServeWs)
+
 }

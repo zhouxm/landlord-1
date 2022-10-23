@@ -24,7 +24,7 @@ type Table struct {
 	TableId      TableId
 	State        int
 	Creator      *Client
-	TableClients map[UserId]*Client
+	TableClients map[int]*Client
 	GameManage   *GameManage
 }
 
@@ -137,10 +137,10 @@ func (table *Table) addRobot(room *Room) {
 }
 
 //生成随机robotID
-func (table *Table) getRobotID() (robot UserId) {
+func (table *Table) getRobotID() (robot int) {
 	time.Sleep(time.Microsecond * 10)
 	rand.Seed(time.Now().UnixNano())
-	robot = UserId(rand.Intn(10000))
+	robot = rand.Intn(10000)
 	table.Lock.RLock()
 	defer table.Lock.RUnlock()
 	if _, ok := table.TableClients[robot]; ok {

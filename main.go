@@ -2,17 +2,25 @@ package main
 
 import (
 	_ "GoServer/routers"
+	"fmt"
 	"github.com/beego/beego/v2/core/logs"
 
-	beego "github.com/beego/beego/v2/server/web"
+	"github.com/beego/beego/v2/server/web"
 )
 
 func main() {
 	logs.EnableFuncCallDepth(true)
 	logs.SetLogFuncCallDepth(3)
-	if beego.BConfig.RunMode == "dev" {
-		beego.BConfig.WebConfig.DirectoryIndex = true
-		beego.BConfig.WebConfig.StaticDir["/swagger"] = "swagger"
+	logs.Info(web.AppConfig.Strings("httpport"))
+	web.BConfig.RouterCaseSensitive = false
+	tree := web.PrintTree()
+	methods := tree["Data"].(web.M)
+	for k, v := range methods {
+		fmt.Printf("%s => %v\n", k, v)
 	}
-	beego.Run()
+	if web.BConfig.RunMode == "dev" {
+		web.BConfig.WebConfig.DirectoryIndex = true
+		web.BConfig.WebConfig.StaticDir["/swagger"] = "swagger"
+	}
+	web.Run()
 }

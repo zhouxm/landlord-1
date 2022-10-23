@@ -52,7 +52,7 @@ func (r *Room) newTable(client *Client) (table *Table) {
 	table = &Table{
 		TableId:      roomManager.TableIdInc,
 		Creator:      client,
-		TableClients: make(map[UserId]*Client, 3),
+		TableClients: make(map[int]*Client, 3),
 		GameManage: &GameManage{
 			FirstCallScore: client,
 			Multiple:       1,

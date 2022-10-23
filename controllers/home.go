@@ -12,7 +12,7 @@ type HomeController struct {
 	web.Controller
 }
 
-func (c *HomeController) Get() {
+func (c HomeController) Get() {
 	c.Layout = "poker.html"
 	c.TplName = "poker.html"
 
@@ -31,5 +31,9 @@ func (c *HomeController) Get() {
 	}
 	c.Data["user"] = string(res)
 	c.Data["port"] = "8081"
-	c.Render()
+	err = c.Render()
+	c.Ctx.WriteString("PutUsers")
+	if err != nil {
+		return
+	}
 }

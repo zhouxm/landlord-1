@@ -19,10 +19,10 @@ type Combination struct {
 }
 
 func init() {
-	path := "rule.json"
+	path := "static/rule.json"
 	_, err := os.Stat(path)
 	if os.IsNotExist(err) {
-		write()
+		generate(path)
 	}
 	file, err := os.Open(path)
 	if err != nil {
