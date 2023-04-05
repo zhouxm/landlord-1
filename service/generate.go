@@ -8,7 +8,7 @@ import (
 	"github.com/beego/beego/v2/core/logs"
 )
 
-//生成连续num个的单牌的顺子
+// 生成连续num个的单牌的顺子
 func generateSeq(num int, seq []string) (res []string) {
 	for i, _ := range seq {
 		if i+num > 12 {
@@ -23,7 +23,7 @@ func generateSeq(num int, seq []string) (res []string) {
 	return
 }
 
-//生成num个不同单的组合
+// 生成num个不同单的组合
 func combination(seq []string, num int) (comb []string) {
 	if num == 0 {
 		panic("generate err , combination count can not be 0")
@@ -53,54 +53,54 @@ func combination(seq []string, num int) (comb []string) {
 	return
 }
 
-func generate(path string) {
-	CARDS := "34567890JQKA2"
-	RULE := map[string][]string{}
-	RULE["single"] = []string{}
-	RULE["pair"] = []string{}
-	RULE["trio"] = []string{}
-	RULE["bomb"] = []string{}
-	for _, c := range CARDS {
+func generate(path string) map[string][]string {
+	cards := "3456789TJQKA2"
+	rule := map[string][]string{}
+	rule["single"] = []string{}
+	rule["pair"] = []string{}
+	rule["trio"] = []string{}
+	rule["bomb"] = []string{}
+	for _, c := range cards {
 		card := string(c)
-		RULE["single"] = append(RULE["single"], card)
-		RULE["pair"] = append(RULE["pair"], card+card)
-		RULE["trio"] = append(RULE["trio"], card+card+card)
-		RULE["bomb"] = append(RULE["bomb"], card+card+card+card)
+		rule["single"] = append(rule["single"], card)
+		rule["pair"] = append(rule["pair"], card+card)
+		rule["trio"] = append(rule["trio"], card+card+card)
+		rule["bomb"] = append(rule["bomb"], card+card+card+card)
 	}
 	for _, num := range []int{5, 6, 7, 8, 9, 10, 11, 12} {
-		RULE["seq_single"+strconv.Itoa(num)] = generateSeq(num, RULE["single"])
+		rule["seq_single"+strconv.Itoa(num)] = generateSeq(num, rule["single"])
 	}
 	for _, num := range []int{3, 4, 5, 6, 7, 8, 9, 10} {
-		RULE["seq_pair"+strconv.Itoa(num)] = generateSeq(num, RULE["pair"])
+		rule["seq_pair"+strconv.Itoa(num)] = generateSeq(num, rule["pair"])
 	}
 	for _, num := range []int{2, 3, 4, 5, 6} {
-		RULE["seq_trio"+strconv.Itoa(num)] = generateSeq(num, RULE["trio"])
+		rule["seq_trio"+strconv.Itoa(num)] = generateSeq(num, rule["trio"])
 	}
-	RULE["single"] = append(RULE["single"], "w")
-	RULE["single"] = append(RULE["single"], "W")
-	RULE["rocket"] = append(RULE["rocket"], "Ww")
+	rule["single"] = append(rule["single"], "L")
+	rule["single"] = append(rule["single"], "B")
+	rule["rocket"] = append(rule["rocket"], "BL")
 
-	RULE["trio_single"] = make([]string, 0)
-	RULE["trio_pair"] = make([]string, 0)
+	rule["trio_single"] = make([]string, 0)
+	rule["trio_pair"] = make([]string, 0)
 
-	for _, t := range RULE["trio"] {
-		for _, s := range RULE["single"] {
+	for _, t := range rule["trio"] {
+		for _, s := range rule["single"] {
 			if s[0] != t[0] {
-				RULE["trio_single"] = append(RULE["trio_single"], t+s)
+				rule["trio_single"] = append(rule["trio_single"], t+s)
 			}
 		}
-		for _, p := range RULE["pair"] {
+		for _, p := range rule["pair"] {
 			if p[0] != t[0] {
-				RULE["trio_pair"] = append(RULE["trio_pair"], t+p)
+				rule["trio_pair"] = append(rule["trio_pair"], t+p)
 			}
 		}
 	}
 	for _, num := range []int{2, 3, 4, 5} {
 		seqTrioSingle := []string(nil)
 		seqTrioPair := []string(nil)
-		for _, seqTrio := range RULE["seq_trio"+strconv.Itoa(num)] {
-			seq := make([]string, len(RULE["single"]))
-			copy(seq, RULE["single"])
+		for _, seqTrio := range rule["seq_trio"+strconv.Itoa(num)] {
+			seq := make([]string, len(rule["single"]))
+			copy(seq, rule["single"])
 			for i := 0; i < len(seqTrio); i = i + 3 {
 				for k, v := range seq {
 					if v[0] == seqTrio[i] {
@@ -114,7 +114,7 @@ func generate(path string) {
 				seqTrioSingle = append(seqTrioSingle, seqTrio+singleCombination)
 				var hasJoker bool
 				for _, single := range singleCombination {
-					if single == 'w' || single == 'W' {
+					if single == 'L' || single == 'B' {
 						hasJoker = true
 					}
 				}
@@ -123,15 +123,15 @@ func generate(path string) {
 				}
 			}
 		}
-		RULE["seq_trio_single"+strconv.Itoa(num)] = seqTrioSingle
-		RULE["seq_trio_pair"+strconv.Itoa(num)] = seqTrioPair
+		rule["seq_trio_single"+strconv.Itoa(num)] = seqTrioSingle
+		rule["seq_trio_pair"+strconv.Itoa(num)] = seqTrioPair
 	}
 
-	RULE["bomb_single"] = []string(nil)
-	RULE["bomb_pair"] = []string(nil)
-	for _, b := range RULE["bomb"] {
-		seq := make([]string, len(RULE["single"]))
-		copy(seq, RULE["single"])
+	rule["bomb_single"] = []string(nil)
+	rule["bomb_pair"] = []string(nil)
+	for _, b := range rule["bomb"] {
+		seq := make([]string, len(rule["single"]))
+		copy(seq, rule["single"])
 		for i, single := range seq {
 			if single[0] == b[0] {
 				copy(seq[i:], seq[i+1:])
@@ -139,14 +139,14 @@ func generate(path string) {
 			}
 		}
 		for _, comb := range combination(seq, 2) {
-			RULE["bomb_single"] = append(RULE["bomb_single"], b+comb)
-			if comb[0] != 'w' && comb[0] != 'W' && comb[1] != 'w' && comb[1] != 'W' {
-				RULE["bomb_pair"] = append(RULE["bomb_pair"], b+comb+comb)
+			rule["bomb_single"] = append(rule["bomb_single"], b+comb)
+			if comb[0] != 'L' && comb[0] != 'B' && comb[1] != 'L' && comb[1] != 'B' {
+				rule["bomb_pair"] = append(rule["bomb_pair"], b+comb+comb)
 			}
 		}
 	}
 
-	res, err := json.Marshal(RULE)
+	res, err := json.Marshal(rule)
 	if err != nil {
 		panic("json marsha1 RULE err :" + err.Error())
 	}
@@ -164,4 +164,5 @@ func generate(path string) {
 	if err != nil {
 		panic("create rule.json err:" + err.Error())
 	}
+	return rule
 }

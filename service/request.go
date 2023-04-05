@@ -4,7 +4,7 @@ import (
 	"github.com/beego/beego/v2/core/logs"
 )
 
-//处理websocket请求
+// 处理websocket请求
 func wsRequest(data []interface{}, client *ClientController) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -26,9 +26,11 @@ func wsRequest(data []interface{}, client *ClientController) {
 		}
 
 	case ReqLogin:
+		logs.Debug("ReqLogin %v userid:%v name:%v", RespLogin, client.User.Id, client.User.Username)
 		client.sendMsg([]interface{}{RespLogin, client.User.Id, client.User.Username})
 
 	case ReqRoomList:
+		logs.Debug("ReqRoomList %v RespRoomList:%v", ReqRoomList, RespRoomList)
 		client.sendMsg([]interface{}{RespRoomList})
 
 	case ReqTableList:
@@ -53,6 +55,7 @@ func wsRequest(data []interface{}, client *ClientController) {
 					res = append(res, [2]int{int(table.TableId), len(table.TableClients)})
 				}
 			}
+			logs.Debug("RespJoinRoom %v res:%v", RespJoinRoom, res)
 			client.sendMsg([]interface{}{RespJoinRoom, res})
 		}
 
@@ -116,6 +119,7 @@ func wsRequest(data []interface{}, client *ClientController) {
 		callEnd := score == 3 || client.Table.allCalled()
 		userCall := []interface{}{RespCallScore, client.User.Id, score, callEnd}
 		for _, c := range client.Table.TableClients {
+			logs.Debug("ReqCallScore response:%v", userCall)
 			c.sendMsg(userCall)
 		}
 		if callEnd {
@@ -153,6 +157,7 @@ func wsRequest(data []interface{}, client *ClientController) {
 							logs.Warn("player[%d] play non-exist poker", client.User.Id)
 							res := []interface{}{RespShotPoker, client.User.Id, []int{}}
 							for _, c := range client.Table.TableClients {
+								logs.Debug("ReqShotPoker response:%v", res)
 								c.sendMsg(res)
 							}
 							return
@@ -165,6 +170,7 @@ func wsRequest(data []interface{}, client *ClientController) {
 						logs.Warn("player[%d] shot poker %v small than last shot poker %v ", client.User.Id, shotPokers, client.Table.GameManage.LastShotPoker)
 						res := []interface{}{RespShotPoker, client.User.Id, []int{}}
 						for _, c := range client.Table.TableClients {
+							logs.Debug("ReqShotPoker response:%v", res)
 							c.sendMsg(res)
 						}
 						return
@@ -186,6 +192,7 @@ func wsRequest(data []interface{}, client *ClientController) {
 				}
 				res := []interface{}{RespShotPoker, client.User.Id, shotPokers}
 				for _, c := range client.Table.TableClients {
+					logs.Debug("ReqShotPoker response:%v", res)
 					c.sendMsg(res)
 				}
 				if len(client.HandPokers) == 0 {

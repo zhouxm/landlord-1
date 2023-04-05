@@ -4,10 +4,11 @@ import (
 	"GoServer/models"
 	"bytes"
 	"encoding/json"
-	"github.com/beego/beego/v2/server/web"
 	"net/http"
 	"strconv"
 	"time"
+
+	"github.com/beego/beego/v2/server/web"
 
 	"github.com/beego/beego/v2/core/logs"
 	"github.com/gorilla/websocket"
@@ -48,7 +49,7 @@ type ClientController struct {
 	toServer   chan []interface{} //robot发送给服务器
 }
 
-//重置状态
+// 重置状态
 func (c *ClientController) reset() {
 	c.User.Role = 1
 	c.HandPokers = make([]int, 0, 21)
@@ -56,7 +57,7 @@ func (c *ClientController) reset() {
 	c.IsCalled = false
 }
 
-//发送房间内已有的牌桌信息
+// 发送房间内已有的牌桌信息
 func (c *ClientController) sendRoomTables() {
 	res := make([][2]int, 0)
 	for _, table := range c.Room.Tables {
@@ -101,7 +102,7 @@ func (c *ClientController) sendMsg(msg []interface{}) {
 	}
 }
 
-//关闭客户端
+// 关闭客户端
 func (c *ClientController) close() {
 	if c.Table != nil {
 		for _, client := range c.Table.TableClients {

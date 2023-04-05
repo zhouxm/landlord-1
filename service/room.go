@@ -1,10 +1,7 @@
 package service
 
 import (
-	"GoServer/models"
-	"math/rand"
 	"sync"
-	"time"
 
 	"github.com/beego/beego/v2/core/logs"
 )
@@ -44,7 +41,7 @@ type Room struct {
 	EntranceFee int
 }
 
-//新建牌桌
+// 新建牌桌
 func (r *Room) newTable(client *ClientController) (table *Table) {
 	roomManager.Lock.Lock()
 	defer roomManager.Lock.Unlock()
@@ -69,24 +66,25 @@ func (r *Room) newTable(client *ClientController) (table *Table) {
 }
 
 func init() {
-	go func() { //压测
-		time.Sleep(time.Second * 3)
-		for i := 0; i < 1; i++ {
-			client := &ClientController{
-				Room:       roomManager.Rooms[1],
-				HandPokers: make([]int, 0, 21),
-				User: &models.Account{
-					Id:       rand.Intn(10000),
-					Username: "ROBOT-0",
-					Coin:     10000,
-				},
-				IsRobot:  true,
-				toRobot:  make(chan []interface{}, 3),
-				toServer: make(chan []interface{}, 3),
-			}
-			go client.runRobot()
-			table := client.Room.newTable(client)
-			table.joinTable(client)
-		}
-	}()
+
+	// go func() { //压测
+	// 	time.Sleep(time.Second * 3)
+	// 	for i := 0; i < 1; i++ {
+	// 		client := &ClientController{
+	// 			Room:       roomManager.Rooms[1],
+	// 			HandPokers: make([]int, 0, 21),
+	// 			User: &models.Account{
+	// 				Id:       rand.Intn(10000),
+	// 				Username: "ROBOT-0",
+	// 				Coin:     10000,
+	// 			},
+	// 			IsRobot:  true,
+	// 			toRobot:  make(chan []interface{}, 3),
+	// 			toServer: make(chan []interface{}, 3),
+	// 		}
+	// 		go client.runRobot()
+	// 		table := client.Room.newTable(client)
+	// 		table.joinTable(client)
+	// 	}
+	// }()
 }

@@ -46,9 +46,9 @@ func ToPokers(num []int) string {
 	res := make([]byte, 0)
 	for _, poker := range num {
 		if poker == 52 {
-			res = append(res, 'W')
+			res = append(res, 'B')
 		} else if poker == 53 {
-			res = append(res, 'w')
+			res = append(res, 'L')
 		} else {
 			res = append(res, totalCards[poker%13])
 		}
@@ -58,10 +58,10 @@ func ToPokers(num []int) string {
 
 //将牌转换为编号
 func ToPoker(card byte) (poker []int) {
-	if card == 'W' {
+	if card == 'B' {
 		return []int{52}
 	}
-	if card == 'w' {
+	if card == 'L' {
 		return []int{53}
 	}
 	cards := "A234567890JQK"

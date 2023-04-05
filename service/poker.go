@@ -3,8 +3,9 @@ package service
 import (
 	"encoding/json"
 	"fmt"
-	"io"
 	"os"
+
+	"github.com/beego/beego/v2/core/logs"
 )
 
 var (
@@ -22,30 +23,37 @@ func init() {
 	path := "static/rule.json"
 	_, err := os.Stat(path)
 	if os.IsNotExist(err) {
+		logs.Info(path, "is not exist, will generate")
 		generate(path)
 	}
-	file, err := os.Open(path)
+	// file, err := os.Open(path)
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// defer file.Close()
+
+	// var content []byte
+	// for {
+	// 	buf := make([]byte, 1024)
+	// 	readNum, err := file.Read(buf)
+	// 	if err != nil && err != io.EOF {
+	// 		panic(err)
+	// 	}
+	// 	for i := 0; i < readNum; i++ {
+	// 		content = append(content, buf[i])
+	// 	}
+	// 	if 0 == readNum {
+	// 		break
+	// 	}
+	// }
+
+	content, err := os.ReadFile(path)
 	if err != nil {
 		panic(err)
 	}
-	defer file.Close()
 
-	var jsonStrByte []byte
-	for {
-		buf := make([]byte, 1024)
-		readNum, err := file.Read(buf)
-		if err != nil && err != io.EOF {
-			panic(err)
-		}
-		for i := 0; i < readNum; i++ {
-			jsonStrByte = append(jsonStrByte, buf[i])
-		}
-		if 0 == readNum {
-			break
-		}
-	}
 	var rule = make(map[string][]string)
-	err = json.Unmarshal(jsonStrByte, &rule)
+	err = json.Unmarshal(content, &rule)
 	if err != nil {
 		fmt.Printf("json unmarsha1 err:%v \n", err)
 		return
