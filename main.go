@@ -1,9 +1,9 @@
 package main
 
 import (
-	_ "GoServer/routers"
 	"fmt"
 	"github.com/beego/beego/v2/core/logs"
+	_ "landlord/routers"
 
 	"github.com/beego/beego/v2/server/web"
 )

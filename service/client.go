@@ -1,9 +1,9 @@
 package service
 
 import (
-	"GoServer/models"
 	"bytes"
 	"encoding/json"
+	"landlord/models"
 	"net/http"
 	"strconv"
 	"time"

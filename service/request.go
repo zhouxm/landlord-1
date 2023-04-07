@@ -191,8 +191,8 @@ func wsRequest(data []interface{}, client *ClientController) {
 					}
 				}
 				res := []interface{}{RespShotPoker, client.User.Id, shotPokers}
+				logs.Debug("ReqShotPoker response:%v", res)
 				for _, c := range client.Table.TableClients {
-					logs.Debug("ReqShotPoker response:%v", res)
 					c.sendMsg(res)
 				}
 				if len(client.HandPokers) == 0 {

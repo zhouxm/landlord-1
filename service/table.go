@@ -1,8 +1,8 @@
 package service
 
 import (
-	"GoServer/models"
 	"fmt"
+	"landlord/models"
 	"math/rand"
 	"sort"
 	"sync"

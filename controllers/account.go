@@ -1,10 +1,11 @@
 package controllers
 
 import (
-	"GoServer/models"
 	"encoding/json"
-	"github.com/beego/beego/v2/core/logs"
+	"landlord/models"
 	"strconv"
+
+	"github.com/beego/beego/v2/core/logs"
 
 	beego "github.com/beego/beego/v2/server/web"
 )

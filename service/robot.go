@@ -18,7 +18,7 @@ func (c *ClientController) runRobot() {
 			if !ok {
 				return
 			}
-			logs.Debug("robot [%v] receive  message %v ", c.User.Username, msg)
+			logs.Debug("robot [%v] receive message %v ", c.User.Username, msg)
 			if len(msg) < 1 {
 				logs.Error("send to robot [%v],message err ,%v", c.User.Username, msg)
 				return
@@ -57,7 +57,7 @@ func (c *ClientController) runRobot() {
 					time.Sleep(time.Second)
 					c.Table.Lock.RLock()
 					if c.Table.GameManage.Turn == c {
-						c.autoShotPoker()
+						c.autoDiscards()
 					}
 					c.Table.Lock.RUnlock()
 
@@ -66,7 +66,7 @@ func (c *ClientController) runRobot() {
 					//logs.Debug("robot [%v] role [%v] receive message ResShowPoker turn :%v", c.User.Username, c.User.Role, c.Table.GameManage.Turn.User.Username)
 					c.Table.Lock.RLock()
 					if c.Table.GameManage.Turn == c || (c.Table.GameManage.Turn == nil && c.User.Role == RoleLandlord) {
-						c.autoShotPoker()
+						c.autoDiscards()
 					}
 					c.Table.Lock.RUnlock()
 				case RespGameOver:
@@ -78,15 +78,14 @@ func (c *ClientController) runRobot() {
 }
 
 // 自动出牌
-func (c *ClientController) autoShotPoker() {
+func (c *ClientController) autoDiscards() {
 	//因为机器人休眠一秒后才出牌，有可能因用户退出而关闭chan
 	defer func() {
 		err := recover()
 		if err != nil {
-			logs.Warn("autoShotPoker err : %v", err)
+			logs.Warn("autoDiscards err : %v", err)
 		}
 	}()
-	logs.Debug("robot [%v] auto-shot poker", c.User.Username)
 	shotPokers := make([]int, 0)
 	if len(c.Table.GameManage.LastShotPoker) == 0 || c.Table.GameManage.LastShotClient == c {
 		shotPokers = append(shotPokers, c.HandPokers[0])
@@ -99,7 +98,7 @@ func (c *ClientController) autoShotPoker() {
 	}
 	req := []interface{}{float64(ReqShotPoker)}
 	req = append(req, float64Pokers)
-	logs.Debug("robot [%v] autoShotPoker %v", c.User.Username, float64Pokers)
+	logs.Debug("robotID:%v autoDiscards :%v", c.User.Id, float64Pokers)
 	c.toServer <- req
 }
 

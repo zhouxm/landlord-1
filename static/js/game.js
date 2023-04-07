@@ -75,6 +75,10 @@ PG.Game.prototype = {
                 this.tableId = packet[1];
                 this.titleBar.text = '房间:' + this.tableId;
                 var playerIds = packet[2];
+                if (playerIds.length <= 2) {
+                    console.log(playerIds);
+                    break;
+                }
                 for (var i = 0; i < playerIds.length; i++) {
                     if (playerIds[i][0] == this.players[0].uid) {
                         var info_1 = playerIds[(i+1)%3];

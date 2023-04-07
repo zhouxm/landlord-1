@@ -15,23 +15,24 @@
 <script src="../static/js/generator.js"></script>
 <script>
     if (window.Poker) {
-        var container = document.getElementById('container'), domCanvas = document.createElement('canvas'),
+        const container = document.getElementById('container'), domCanvas = document.createElement('canvas'),
             canvas = domCanvas.getContext('2d');
-        var commandArray = [[], [], [], [], [], [], [], [], [], [], [], [], []], param = {};
+        const commandArray = [[], [], [], [], [], [], [], [], [], [], [], [], []], param = {};
         container.appendChild(domCanvas);
-        function showpoker(size) {
-            var h = +(size || 200), w = h * 0.75, x = 0, y = 0, suits = ['hearts', 'diamonds', 'spades', 'clubs'],
+        function showPoker(size) {
+            let h = +(size || 200), w = h * 0.75, x = 0, y = 0, suits = ['hearts', 'diamonds', 'spades', 'clubs'],
                 points = ['a', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'j', 'q', 'k'];
             param.h = h;
             param.w = w;
             domCanvas.height = 5 * h;
             domCanvas.width = 13 * w;
-            for (var ks in suits) {
-                for (var kp in points) {
+            for (const ks in suits) {
+                for (const kp in points) {
                     drawPokerCard(x, y, h, suits[ks], points[kp]);
                     x += w;
                 }
-                x = 0, y += h;
+                x = 0;
+                y += h;
             }
             drawPokerCard(x = 0, y, h, 'hearts', 'joker');
             drawPokerCard(x += w, y, h, 'spades', 'joker');
@@ -57,10 +58,10 @@
             canvas.drawPokerBack(x, y, h, c1, c2);
             commandArray[x / param.w][y / param.h] = 'canvas.drawPokerBack(' + x + ', ' + y + ', ' + h + ', \'' + c1 + '\', \'' + c2 + '\');';
         };
-        showpoker(120);
+        showPoker(120);
         domCanvas.addEventListener('click', function (e) {
-            var x = ((e.pageX - e.target.offsetLeft) / param.w) | 0,
-                y = ((e.pageY - e.target.offsetTop ) / param.h) | 0;
+            const x = ((e.pageX - e.target.offsetLeft) / param.w) | 0,
+                y = ((e.pageY - e.target.offsetTop) / param.h) | 0;
             document.getElementById('code').innerHTML = commandArray[x][y];
             console.dir(e)
         });

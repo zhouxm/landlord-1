@@ -1,9 +1,9 @@
 package routers
 
 import (
-	"GoServer/controllers"
-	"GoServer/service"
 	"github.com/beego/beego/v2/server/web"
+	"landlord/controllers"
+	"landlord/service"
 )
 
 func init() {

@@ -1,4 +1,4 @@
-module GoServer
+module landlord
 
 go 1.20
 
