@@ -1,9 +1,10 @@
-package service
+package agent
 
 import (
 	"bytes"
 	"encoding/json"
 	"landlord/models"
+	"landlord/service"
 	"net/http"
 	"strconv"
 	"time"
@@ -38,39 +39,39 @@ type ClientController struct {
 	web.Controller
 	conn       *websocket.Conn
 	User       *models.Account
-	Room       *Room
-	Table      *Table
+	Room       *service.Room
+	Table      *service.Table
 	HandPokers []int
 	Ready      bool
 	IsCalled   bool              //是否叫完分
 	Next       *ClientController //链表
 	IsRobot    bool
-	toRobot    chan []interface{} //发送给robot的消息
-	toServer   chan []interface{} //robot发送给服务器
+	ToRobot    chan []interface{} //发送给robot的消息
+	ToServer   chan []interface{} //robot发送给服务器
 }
 
-// 重置状态
-func (c *ClientController) reset() {
+// Reset 重置状态
+func (c *ClientController) Reset() {
 	c.User.Role = 1
 	c.HandPokers = make([]int, 0, 21)
 	c.Ready = false
 	c.IsCalled = false
 }
 
-// 发送房间内已有的牌桌信息
-func (c *ClientController) sendRoomTables() {
+// SendRoomTables 发送房间内已有的牌桌信息
+func (c *ClientController) SendRoomTables() {
 	res := make([][2]int, 0)
 	for _, table := range c.Room.Tables {
 		if len(table.TableClients) < 3 {
 			res = append(res, [2]int{int(table.TableId), len(table.TableClients)})
 		}
 	}
-	c.sendMsg([]interface{}{RespTableList, res})
+	c.SendMsg([]interface{}{RespTableList, res})
 }
 
-func (c *ClientController) sendMsg(msg []interface{}) {
+func (c *ClientController) SendMsg(msg []interface{}) {
 	if c.IsRobot {
-		c.toRobot <- msg
+		c.ToRobot <- msg
 		return
 	}
 	msgByte, err := json.Marshal(msg)
@@ -126,13 +127,13 @@ func (c *ClientController) close() {
 			return
 		}
 		delete(c.Table.TableClients, c.User.Id)
-		if c.Table.State == GamePlaying {
-			c.Table.syncUser()
-			//c.Table.reset()
+		if c.Table.State == service.GamePlaying {
+			c.Table.SyncUser()
+			//c.Table.Reset()
 		}
 		if c.IsRobot {
-			close(c.toRobot)
-			close(c.toServer)
+			close(c.ToRobot)
+			close(c.ToServer)
 		}
 	}
 }
@@ -156,12 +157,12 @@ func (c *ClientController) readPump() {
 		if err != nil {
 			logs.Error("message unmarsha1 err, user_id[%d] err:%v", c.User.Id, err)
 		} else {
-			wsRequest(data, c)
+			service.WSRequest(data, c)
 		}
 	}
 }
 
-// 心跳
+// Ping 心跳
 func (c *ClientController) Ping() {
 	ticker := time.NewTicker(pingPeriod)
 	defer func() {

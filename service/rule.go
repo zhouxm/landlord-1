@@ -19,7 +19,7 @@ func SortStr(pokers string) (sortPokers string) {
 	return string(res)
 }
 
-// 出的牌是否在手牌中存在
+// IsContains 出的牌是否在手牌中存在
 func IsContains(parent, child string) (result bool) {
 	for _, childCard := range child {
 		inHand := false
@@ -40,7 +40,7 @@ func IsContains(parent, child string) (result bool) {
 	return true
 }
 
-// 将牌编号转换为扑克牌
+// ToPokers 将牌编号转换为扑克牌
 func ToPokers(num []int) string {
 	totalCards := "A234567890JQK"
 	res := make([]byte, 0)
@@ -56,7 +56,7 @@ func ToPokers(num []int) string {
 	return string(res)
 }
 
-// 将牌转换为编号
+// ToPoker 将牌转换为编号
 func ToPoker(card byte) (poker []int) {
 	if card == 'B' {
 		return []int{52}
@@ -108,7 +108,7 @@ func pokersValue(pokers string) (cardType string, score int) {
 	return
 }
 
-// 比较牌大小,并返回是否翻倍
+// ComparePoker 比较牌大小,并返回是否翻倍
 func ComparePoker(baseNum, comparedNum []int) (int, bool) {
 	logs.Debug("comparedNum %v  %v", baseNum, comparedNum)
 	if len(baseNum) == 0 || len(comparedNum) == 0 {
@@ -144,7 +144,7 @@ func ComparePoker(baseNum, comparedNum []int) (int, bool) {
 	return 0, false
 }
 
-// 查找手牌中是否有比被比较牌型大的牌
+// CardsAbove 查找手牌中是否有比被比较牌型大的牌
 func CardsAbove(handsNum, lastShotNum []int) (aboveNum []int) {
 	handCards := ToPokers(handsNum)
 	turnCards := ToPokers(lastShotNum)

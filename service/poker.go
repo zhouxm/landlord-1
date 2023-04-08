@@ -3,6 +3,7 @@ package service
 import (
 	"encoding/json"
 	"fmt"
+	"landlord/utils"
 	"os"
 
 	"github.com/beego/beego/v2/core/logs"
@@ -24,7 +25,7 @@ func init() {
 	_, err := os.Stat(path)
 	if os.IsNotExist(err) {
 		logs.Info(path, "is not exist, will generate")
-		generate(path)
+		utils.Generate(path)
 	}
 	// file, err := os.Open(path)
 	// if err != nil {

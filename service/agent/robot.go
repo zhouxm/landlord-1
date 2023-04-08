@@ -1,20 +1,21 @@
-package service
+package agent
 
 import (
+	"landlord/service"
 	"time"
 
 	"github.com/beego/beego/v2/core/logs"
 )
 
-func (c *ClientController) runRobot() {
+func (c *ClientController) RunRobot() {
 	for {
 		select {
-		case msg, ok := <-c.toServer:
+		case msg, ok := <-c.ToServer:
 			if !ok {
 				return
 			}
-			wsRequest(msg, c)
-		case msg, ok := <-c.toRobot:
+			service.WSRequest(msg, c)
+		case msg, ok := <-c.ToRobot:
 			if !ok {
 				return
 			}
@@ -57,7 +58,7 @@ func (c *ClientController) runRobot() {
 					time.Sleep(time.Second)
 					c.Table.Lock.RLock()
 					if c.Table.GameManage.Turn == c {
-						c.autoDiscards()
+						c.autoShotPoker()
 					}
 					c.Table.Lock.RUnlock()
 
@@ -66,7 +67,7 @@ func (c *ClientController) runRobot() {
 					//logs.Debug("robot [%v] role [%v] receive message ResShowPoker turn :%v", c.User.Username, c.User.Role, c.Table.GameManage.Turn.User.Username)
 					c.Table.Lock.RLock()
 					if c.Table.GameManage.Turn == c || (c.Table.GameManage.Turn == nil && c.User.Role == RoleLandlord) {
-						c.autoDiscards()
+						c.autoShotPoker()
 					}
 					c.Table.Lock.RUnlock()
 				case RespGameOver:
@@ -78,19 +79,19 @@ func (c *ClientController) runRobot() {
 }
 
 // 自动出牌
-func (c *ClientController) autoDiscards() {
+func (c *ClientController) autoShotPoker() {
 	//因为机器人休眠一秒后才出牌，有可能因用户退出而关闭chan
 	defer func() {
 		err := recover()
 		if err != nil {
-			logs.Warn("autoDiscards err : %v", err)
+			logs.Warn("autoShotPoker err : %v", err)
 		}
 	}()
 	shotPokers := make([]int, 0)
 	if len(c.Table.GameManage.LastShotPoker) == 0 || c.Table.GameManage.LastShotClient == c {
 		shotPokers = append(shotPokers, c.HandPokers[0])
 	} else {
-		shotPokers = CardsAbove(c.HandPokers, c.Table.GameManage.LastShotPoker)
+		shotPokers = service.CardsAbove(c.HandPokers, c.Table.GameManage.LastShotPoker)
 	}
 	float64Pokers := make([]interface{}, 0)
 	for _, poker := range shotPokers {
@@ -98,8 +99,8 @@ func (c *ClientController) autoDiscards() {
 	}
 	req := []interface{}{float64(ReqShotPoker)}
 	req = append(req, float64Pokers)
-	logs.Debug("robotID:%v autoDiscards :%v", c.User.Id, float64Pokers)
-	c.toServer <- req
+	logs.Debug("robotID:%v autoShotPoker :%v", c.User.Id, float64Pokers)
+	c.ToServer <- req
 }
 
 // 自动叫分
@@ -111,5 +112,5 @@ func (c *ClientController) autoCallScore() {
 		}
 	}()
 	logs.Debug("robot [%v] autoCallScore", c.User.Username)
-	c.toServer <- []interface{}{float64(ReqCallScore), float64(3)}
+	c.ToServer <- []interface{}{float64(ReqCallScore), float64(3)}
 }

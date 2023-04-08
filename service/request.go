@@ -2,13 +2,14 @@ package service
 
 import (
 	"github.com/beego/beego/v2/core/logs"
+	"landlord/service/agent"
 )
 
-// 处理websocket请求
-func wsRequest(data []interface{}, client *ClientController) {
+// WSRequest 处理websocket请求
+func WSRequest(data []interface{}, client *agent.ClientController) {
 	defer func() {
 		if r := recover(); r != nil {
-			logs.Error("wsRequest panic:%v ", r)
+			logs.Error("WSRequest panic:%v ", r)
 		}
 	}()
 	if len(data) < 1 {
@@ -19,24 +20,24 @@ func wsRequest(data []interface{}, client *ClientController) {
 		req = int(r)
 	}
 	switch req {
-	case ReqCheat:
+	case agent.ReqCheat:
 		if len(data) < 2 {
 			logs.Error("user [%d] request ReqCheat ,but missing user id", client.User.Id)
 			return
 		}
 
-	case ReqLogin:
-		logs.Debug("ReqLogin %v userid:%v name:%v", RespLogin, client.User.Id, client.User.Username)
-		client.sendMsg([]interface{}{RespLogin, client.User.Id, client.User.Username})
+	case agent.ReqLogin:
+		logs.Debug("ReqLogin %v userid:%v name:%v", agent.RespLogin, client.User.Id, client.User.Username)
+		client.SendMsg([]interface{}{agent.RespLogin, client.User.Id, client.User.Username})
 
-	case ReqRoomList:
-		logs.Debug("ReqRoomList %v RespRoomList:%v", ReqRoomList, RespRoomList)
-		client.sendMsg([]interface{}{RespRoomList})
+	case agent.ReqRoomList:
+		logs.Debug("ReqRoomList %v RespRoomList:%v", agent.ReqRoomList, agent.RespRoomList)
+		client.SendMsg([]interface{}{agent.RespRoomList})
 
-	case ReqTableList:
-		client.sendRoomTables()
+	case agent.ReqTableList:
+		client.SendRoomTables()
 
-	case ReqJoinRoom:
+	case agent.ReqJoinRoom:
 		if len(data) < 2 {
 			logs.Error("user [%d] request join room ,but missing room id", client.User.Id)
 			return
@@ -55,15 +56,15 @@ func wsRequest(data []interface{}, client *ClientController) {
 					res = append(res, [2]int{int(table.TableId), len(table.TableClients)})
 				}
 			}
-			logs.Debug("RespJoinRoom %v res:%v", RespJoinRoom, res)
-			client.sendMsg([]interface{}{RespJoinRoom, res})
+			logs.Debug("RespJoinRoom %v res:%v", agent.RespJoinRoom, res)
+			client.SendMsg([]interface{}{agent.RespJoinRoom, res})
 		}
 
-	case ReqNewTable:
+	case agent.ReqNewTable:
 		table := client.Room.newTable(client)
 		table.joinTable(client)
 
-	case ReqJoinTable:
+	case agent.ReqJoinTable:
 		if len(data) < 2 {
 			return
 		}
@@ -80,12 +81,12 @@ func wsRequest(data []interface{}, client *ClientController) {
 		if table, ok := client.Room.Tables[tableId]; ok {
 			table.joinTable(client)
 		}
-		client.sendRoomTables()
-	case ReqDealPoker:
+		client.SendRoomTables()
+	case agent.ReqDealPoker:
 		if client.Table.State == GameEnd {
 			client.Ready = true
 		}
-	case ReqCallScore:
+	case agent.ReqCallScore:
 		logs.Debug("[%v] ReqCallScore %v", client.User.Username, data)
 		client.Table.Lock.Lock()
 		defer client.Table.Lock.Unlock()
@@ -117,16 +118,16 @@ func wsRequest(data []interface{}, client *ClientController) {
 		}
 		client.IsCalled = true
 		callEnd := score == 3 || client.Table.allCalled()
-		userCall := []interface{}{RespCallScore, client.User.Id, score, callEnd}
+		userCall := []interface{}{agent.RespCallScore, client.User.Id, score, callEnd}
 		for _, c := range client.Table.TableClients {
 			logs.Debug("ReqCallScore response:%v", userCall)
-			c.sendMsg(userCall)
+			c.SendMsg(userCall)
 		}
 		if callEnd {
 			logs.Debug("call score end")
 			client.Table.callEnd()
 		}
-	case ReqShotPoker:
+	case agent.ReqShotPoker:
 		logs.Debug("user [%v] ReqShotPoker %v", client.User.Username, data)
 		client.Table.Lock.Lock()
 		defer func() {
@@ -155,10 +156,10 @@ func wsRequest(data []interface{}, client *ClientController) {
 							shotPokers = append(shotPokers, poker)
 						} else {
 							logs.Warn("player[%d] play non-exist poker", client.User.Id)
-							res := []interface{}{RespShotPoker, client.User.Id, []int{}}
+							res := []interface{}{agent.RespShotPoker, client.User.Id, []int{}}
 							for _, c := range client.Table.TableClients {
 								logs.Debug("ReqShotPoker response:%v", res)
-								c.sendMsg(res)
+								c.SendMsg(res)
 							}
 							return
 						}
@@ -168,10 +169,10 @@ func wsRequest(data []interface{}, client *ClientController) {
 					compareRes, isMulti := ComparePoker(client.Table.GameManage.LastShotPoker, shotPokers)
 					if client.Table.GameManage.LastShotClient != client && compareRes < 1 {
 						logs.Warn("player[%d] shot poker %v small than last shot poker %v ", client.User.Id, shotPokers, client.Table.GameManage.LastShotPoker)
-						res := []interface{}{RespShotPoker, client.User.Id, []int{}}
+						res := []interface{}{agent.RespShotPoker, client.User.Id, []int{}}
 						for _, c := range client.Table.TableClients {
 							logs.Debug("ReqShotPoker response:%v", res)
-							c.sendMsg(res)
+							c.SendMsg(res)
 						}
 						return
 					}
@@ -190,10 +191,10 @@ func wsRequest(data []interface{}, client *ClientController) {
 						}
 					}
 				}
-				res := []interface{}{RespShotPoker, client.User.Id, shotPokers}
+				res := []interface{}{agent.RespShotPoker, client.User.Id, shotPokers}
 				logs.Debug("ReqShotPoker response:%v", res)
 				for _, c := range client.Table.TableClients {
-					c.sendMsg(res)
+					c.SendMsg(res)
 				}
 				if len(client.HandPokers) == 0 {
 					client.Table.gameOver(client)
@@ -202,14 +203,14 @@ func wsRequest(data []interface{}, client *ClientController) {
 		}
 
 		//case ReqGameOver:
-	case ReqChat:
+	case agent.ReqChat:
 		if len(data) > 1 {
 			switch data[1].(type) {
 			case string:
 				client.Table.chat(client, data[1].(string))
 			}
 		}
-	case ReqRestart:
+	case agent.ReqRestart:
 		client.Table.Lock.Lock()
 		defer client.Table.Lock.Unlock()
 

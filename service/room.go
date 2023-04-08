@@ -1,6 +1,7 @@
 package service
 
 import (
+	"landlord/service/agent"
 	"sync"
 
 	"github.com/beego/beego/v2/core/logs"
@@ -42,7 +43,7 @@ type Room struct {
 }
 
 // 新建牌桌
-func (r *Room) newTable(client *ClientController) (table *Table) {
+func (r *Room) newTable(client *agent.ClientController) (table *Table) {
 	roomManager.Lock.Lock()
 	defer roomManager.Lock.Unlock()
 
@@ -52,7 +53,7 @@ func (r *Room) newTable(client *ClientController) (table *Table) {
 	table = &Table{
 		TableId:      roomManager.TableIdInc,
 		Creator:      client,
-		TableClients: make(map[int]*ClientController, 3),
+		TableClients: make(map[int]*agent.ClientController, 3),
 		GameManage: &GameManage{
 			FirstCallScore: client,
 			Multiple:       1,

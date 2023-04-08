@@ -1,4 +1,4 @@
-package service
+package utils
 
 import (
 	"encoding/json"
@@ -53,7 +53,7 @@ func combination(seq []string, num int) (comb []string) {
 	return
 }
 
-func generate(path string) map[string][]string {
+func Generate(path string) map[string][]string {
 	cards := "3456789TJQKA2"
 	rule := map[string][]string{}
 	rule["single"] = []string{}
