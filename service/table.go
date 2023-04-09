@@ -3,7 +3,6 @@ package service
 import (
 	"fmt"
 	"landlord/models"
-	"landlord/service/agent"
 	"math/rand"
 	"sort"
 	"sync"
@@ -25,12 +24,12 @@ type Table struct {
 	Lock         sync.RWMutex
 	TableId      TableId
 	State        int
-	Creator      *agent.ClientController
-	TableClients map[int]*agent.ClientController
+	Creator      *ClientController
+	TableClients map[int]*ClientController
 	GameManage   *GameManage
 }
 
-func (table *Table) allCalled() bool {
+func (table *Table) AllCalled() bool {
 	for _, client := range table.TableClients {
 		if !client.IsCalled {
 			return false
@@ -40,11 +39,11 @@ func (table *Table) allCalled() bool {
 }
 
 // 一局结束
-func (table *Table) gameOver(client *agent.ClientController) {
+func (table *Table) GameOver(client *ClientController) {
 	coin := table.Creator.Room.EntranceFee * table.GameManage.MaxCallScore * table.GameManage.Multiple
 	table.State = GameEnd
 	for _, c := range table.TableClients {
-		res := []interface{}{agent.RespGameOver, client.User.Id}
+		res := []interface{}{RespGameOver, client.User.Id}
 		if client == c {
 			res = append(res, coin*2-100)
 		} else {
@@ -64,7 +63,7 @@ func (table *Table) gameOver(client *agent.ClientController) {
 }
 
 // 叫分阶段结束
-func (table *Table) callEnd() {
+func (table *Table) CallEnd() {
 	table.State = GamePlaying
 	table.GameManage.FirstCallScore = table.GameManage.FirstCallScore.Next
 	if table.GameManage.MaxCallScoreTurn == nil || table.GameManage.MaxCallScore == 0 {
@@ -73,12 +72,12 @@ func (table *Table) callEnd() {
 		//return
 	}
 	landLord := table.GameManage.MaxCallScoreTurn
-	landLord.User.Role = agent.RoleLandlord
+	landLord.User.Role = RoleLandlord
 	table.GameManage.Turn = landLord
 	for _, poker := range table.GameManage.Pokers {
 		landLord.HandPokers = append(landLord.HandPokers, poker)
 	}
-	res := []interface{}{agent.RespShowPoker, landLord.User.Id, table.GameManage.Pokers}
+	res := []interface{}{RespShowPoker, landLord.User.Id, table.GameManage.Pokers}
 	for _, c := range table.TableClients {
 		logs.Debug("callEnd SendMsg:%v", res)
 		c.SendMsg(res)
@@ -86,7 +85,7 @@ func (table *Table) callEnd() {
 }
 
 // 客户端加入牌桌
-func (table *Table) joinTable(c *agent.ClientController) {
+func (table *Table) JoinTable(c *ClientController) {
 	table.Lock.Lock()
 	defer table.Lock.Unlock()
 	if len(table.TableClients) > 2 {
@@ -124,7 +123,7 @@ func (table *Table) addRobot(room *Room) {
 	robot := fmt.Sprintf("ROBOT-%d", table.getRobotID())
 	logs.Debug("robot [%v] join table", robot)
 	if len(table.TableClients) < 3 {
-		client := &agent.ClientController{
+		client := &ClientController{
 			Room:       room,
 			HandPokers: make([]int, 0, 21),
 			User: &models.Account{
@@ -137,7 +136,7 @@ func (table *Table) addRobot(room *Room) {
 			ToServer: make(chan []interface{}, 3),
 		}
 		go client.RunRobot()
-		table.joinTable(client)
+		table.JoinTable(client)
 	}
 }
 
@@ -169,7 +168,7 @@ func (table *Table) dealPoker() {
 		}
 	}
 	response := make([]interface{}, 0, 3)
-	response = append(append(append(response, agent.RespDealPoker), table.GameManage.FirstCallScore.User.Id), nil)
+	response = append(append(append(response, RespDealPoker), table.GameManage.FirstCallScore.User.Id), nil)
 	for _, client := range table.TableClients {
 		sort.Ints(client.HandPokers)
 		response[len(response)-1] = client.HandPokers
@@ -178,15 +177,15 @@ func (table *Table) dealPoker() {
 	}
 }
 
-func (table *Table) chat(client *agent.ClientController, msg string) {
-	res := []interface{}{agent.RespChat, client.User.Id, msg}
+func (table *Table) Chat(client *ClientController, msg string) {
+	res := []interface{}{RespChat, client.User.Id, msg}
 	for _, c := range table.TableClients {
 		logs.Debug("chat SendMsg:%v", res)
 		c.SendMsg(res)
 	}
 }
 
-func (table *Table) reset() {
+func (table *Table) Reset() {
 	table.GameManage = &GameManage{
 		FirstCallScore:   table.GameManage.FirstCallScore,
 		Turn:             nil,
@@ -199,8 +198,8 @@ func (table *Table) reset() {
 	}
 	table.State = GameCallScore
 	if table.Creator != nil {
-		logs.Debug("reset table.Creator.SendMsg:%v", []interface{}{agent.RespRestart})
-		table.Creator.SendMsg([]interface{}{agent.RespRestart})
+		logs.Debug("reset table.Creator.SendMsg:%v", []interface{}{RespRestart})
+		table.Creator.SendMsg([]interface{}{RespRestart})
 	}
 	for _, c := range table.TableClients {
 		c.Reset()
@@ -227,7 +226,7 @@ func (table *Table) ShufflePokers() {
 func (table *Table) SyncUser() {
 	logs.Debug("sync user")
 	response := make([]interface{}, 0, 3)
-	response = append(append(response, agent.RespJoinTable), table.TableId)
+	response = append(append(response, RespJoinTable), table.TableId)
 	tableUsers := make([][2]interface{}, 0, 2)
 	current := table.Creator
 	for i := 0; i < len(table.TableClients); i++ {

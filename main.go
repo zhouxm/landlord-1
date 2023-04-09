@@ -11,7 +11,6 @@ import (
 func main() {
 	logs.EnableFuncCallDepth(true)
 	logs.SetLogFuncCallDepth(3)
-	logs.Info(web.AppConfig.Strings("httpport"))
 	web.BConfig.RouterCaseSensitive = false
 	tree := web.PrintTree()
 	methods := tree["Data"].(web.M)

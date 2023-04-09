@@ -1,4 +1,4 @@
-package agent
+package service
 
 const (
 	ReqCheat  = 1

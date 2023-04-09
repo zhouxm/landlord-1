@@ -1,14 +1,13 @@
 package service
 
 import (
-	"landlord/service/agent"
 	"sync"
 
 	"github.com/beego/beego/v2/core/logs"
 )
 
 var (
-	roomManager = RoomManager{
+	RoomManagers = RoomManager{
 		Rooms: map[int]*Room{
 			1: {
 				RoomId:      1,
@@ -43,17 +42,17 @@ type Room struct {
 }
 
 // 新建牌桌
-func (r *Room) newTable(client *agent.ClientController) (table *Table) {
-	roomManager.Lock.Lock()
-	defer roomManager.Lock.Unlock()
+func (r *Room) NewTable(client *ClientController) (table *Table) {
+	RoomManagers.Lock.Lock()
+	defer RoomManagers.Lock.Unlock()
 
 	r.Lock.Lock()
 	defer r.Lock.Unlock()
-	roomManager.TableIdInc = roomManager.TableIdInc + 1
+	RoomManagers.TableIdInc = RoomManagers.TableIdInc + 1
 	table = &Table{
-		TableId:      roomManager.TableIdInc,
+		TableId:      RoomManagers.TableIdInc,
 		Creator:      client,
-		TableClients: make(map[int]*agent.ClientController, 3),
+		TableClients: make(map[int]*ClientController, 3),
 		GameManage: &GameManage{
 			FirstCallScore: client,
 			Multiple:       1,
@@ -72,7 +71,7 @@ func init() {
 	// 	time.Sleep(time.Second * 3)
 	// 	for i := 0; i < 1; i++ {
 	// 		client := &ClientController{
-	// 			Room:       roomManager.Rooms[1],
+	// 			Room:       RoomManagers.Rooms[1],
 	// 			HandPokers: make([]int, 0, 21),
 	// 			User: &models.Account{
 	// 				Id:       rand.Intn(10000),

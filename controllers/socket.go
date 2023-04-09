@@ -15,19 +15,6 @@ package controllers
 //	web.Controller
 //}
 //
-//// Get method handles GET requests for WebSocketController.
-//func (c *WebSocketController) Get() {
-//	// Safe check.
-//	uname := c.GetString("uname")
-//	if len(uname) == 0 {
-//		c.Redirect("/", 302)
-//		return
-//	}
-//
-//	c.TplName = "websocket.html"
-//	c.Data["IsWebSocket"] = true
-//	c.Data["UserName"] = uname
-//}
 //
 //// Join method handles WebSocket requests for WebSocketController.
 //func (c *WebSocketController) Join() {
