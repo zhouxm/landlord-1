@@ -1,12 +1,62 @@
 package service
 
 import (
+	"encoding/json"
+	"fmt"
+	"os"
 	"sort"
+	"strconv"
 
 	"github.com/beego/beego/v2/core/logs"
 )
 
-func SortStr(pokers string) (sortPokers string) {
+var (
+	Pokers       = make(map[string]*Combination, 16384)
+	TypeToPokers = make(map[string][]*Combination, 38)
+)
+
+type Combination struct {
+	Type  string
+	Score int
+	Poker string
+}
+
+func init() {
+	path := "static/rule.json"
+	_, err := os.Stat(path)
+	var rule = make(map[string][]string)
+	if os.IsNotExist(err) {
+		logs.Info(path, "is not exist, will generate")
+		rule = generate(path)
+	} else {
+		content, err := os.ReadFile(path)
+		if err != nil {
+			panic(err)
+		}
+
+		err = json.Unmarshal(content, &rule)
+		if err != nil {
+			fmt.Printf("json unmarsha1 err:%v \n", err)
+			return
+		}
+	}
+
+	for pokerType, pokers := range rule {
+		for score, poker := range pokers {
+			cards := sortPokers(poker)
+			p := &Combination{
+				Type:  pokerType,
+				Score: score,
+				Poker: cards,
+			}
+			Pokers[cards] = p
+			TypeToPokers[pokerType] = append(TypeToPokers[pokerType], p)
+		}
+	}
+}
+
+// sortPokers Sort Poker with
+func sortPokers(pokers string) (sortPokers string) {
 	runeArr := make([]int, 0)
 	for _, s := range pokers {
 		runeArr = append(runeArr, int(s))
@@ -19,8 +69,8 @@ func SortStr(pokers string) (sortPokers string) {
 	return string(res)
 }
 
-// IsContains 出的牌是否在手牌中存在
-func IsContains(parent, child string) (result bool) {
+// isContains 出的牌是否在手牌中存在
+func isContains(parent, child string) (result bool) {
 	for _, childCard := range child {
 		inHand := false
 		for i, parentCard := range parent {
@@ -40,8 +90,8 @@ func IsContains(parent, child string) (result bool) {
 	return true
 }
 
-// ToPokers 将牌编号转换为扑克牌
-func ToPokers(num []int) string {
+// toPokers 将牌编号转换为扑克牌
+func toPokers(num []int) string {
 	totalCards := "A234567890JQK"
 	res := make([]byte, 0)
 	for _, poker := range num {
@@ -56,8 +106,8 @@ func ToPokers(num []int) string {
 	return string(res)
 }
 
-// ToPoker 将牌转换为编号
-func ToPoker(card byte) (poker []int) {
+// toPoker 将牌转换为编号
+func toPoker(card byte) (poker []int) {
 	if card == 'B' {
 		return []int{52}
 	}
@@ -85,7 +135,7 @@ func pokersInHand(num []int, findPokers string) (pokers []int) {
 	}
 
 	for _, poker := range findPokers {
-		poker := ToPoker(byte(poker))
+		poker := toPoker(byte(poker))
 	out:
 		for _, pItem := range poker {
 			for _, n := range num {
@@ -101,7 +151,7 @@ func pokersInHand(num []int, findPokers string) (pokers []int) {
 
 // 获得牌型和大小
 func pokersValue(pokers string) (cardType string, score int) {
-	if combination, ok := Pokers[SortStr(pokers)]; ok {
+	if combination, ok := Pokers[sortPokers(pokers)]; ok {
 		cardType = combination.Type
 		score = combination.Score
 	}
@@ -118,7 +168,7 @@ func ComparePoker(baseNum, comparedNum []int) (int, bool) {
 			if len(baseNum) != 0 {
 				return -1, false
 			} else {
-				comparedType, _ := pokersValue(ToPokers(comparedNum))
+				comparedType, _ := pokersValue(toPokers(comparedNum))
 				if comparedType == "rocket" || comparedType == "bomb" {
 					return 1, true
 				}
@@ -126,8 +176,8 @@ func ComparePoker(baseNum, comparedNum []int) (int, bool) {
 			}
 		}
 	}
-	baseType, baseScore := pokersValue(ToPokers(baseNum))
-	comparedType, comparedScore := pokersValue(ToPokers(comparedNum))
+	baseType, baseScore := pokersValue(toPokers(baseNum))
+	comparedType, comparedScore := pokersValue(toPokers(comparedNum))
 	logs.Debug("compare poker %v, %v, %v, %v", baseType, baseScore, comparedType, comparedScore)
 	if baseType == comparedType {
 		return comparedScore - baseScore, false
@@ -146,30 +196,189 @@ func ComparePoker(baseNum, comparedNum []int) (int, bool) {
 
 // CardsAbove 查找手牌中是否有比被比较牌型大的牌
 func CardsAbove(handsNum, lastShotNum []int) (aboveNum []int) {
-	handCards := ToPokers(handsNum)
-	turnCards := ToPokers(lastShotNum)
+	handCards := toPokers(handsNum)
+	turnCards := toPokers(lastShotNum)
 	cardType, cardScore := pokersValue(turnCards)
-	logs.Debug("CardsAbove handsNum %v ,lastShotNum %v, handCards %v,cardType %v,turnCards %v",
+	logs.Debug("CardsAbove hands:%v ,lastShot:%v, handCards %v,cardType %v,turnCards %v",
 		handsNum, lastShotNum, handCards, cardType, turnCards)
 	if len(cardType) == 0 {
 		return
 	}
 	for _, combination := range TypeToPokers[cardType] {
-		if combination.Score > cardScore && IsContains(handCards, combination.Poker) {
+		if combination.Score > cardScore && isContains(handCards, combination.Poker) {
 			aboveNum = pokersInHand(handsNum, combination.Poker)
 			return
 		}
 	}
 	if cardType != "boom" && cardType != "rocket" {
 		for _, combination := range TypeToPokers["boom"] {
-			if IsContains(handCards, combination.Poker) {
+			if isContains(handCards, combination.Poker) {
 				aboveNum = pokersInHand(handsNum, combination.Poker)
 				return
 			}
 		}
-	} else if IsContains(handCards, "Ww") {
+	} else if isContains(handCards, "Ww") {
 		aboveNum = pokersInHand(handsNum, "Ww")
 		return
 	}
 	return
+}
+
+// 生成连续num个的单牌的顺子
+func generateSeq(num int, seq []string) (res []string) {
+	for i, _ := range seq {
+		if i+num > 12 {
+			break
+		}
+		var sec string
+		for j := i; j < i+num; j++ {
+			sec += seq[j]
+		}
+		res = append(res, sec)
+	}
+	return
+}
+
+// 生成num个不同单的组合
+func combination(seq []string, num int) (comb []string) {
+	if num == 0 {
+		panic("generate err , combination count can not be 0")
+	}
+	if len(seq) < num {
+		logs.Error("seq: %v,num:%d", seq, num)
+		return
+		//panic("generate err , seq length less than num")
+	}
+	if num == 1 {
+		return seq
+	}
+	if len(seq) == num {
+		allSingle := ""
+		for _, single := range seq {
+			allSingle += single
+		}
+		return []string{allSingle}
+	}
+	noFirst := combination(seq[1:], num)
+	hasFirst := []string(nil)
+	for _, comb := range combination(seq[1:], num-1) {
+		hasFirst = append(hasFirst, string(seq[0])+comb)
+	}
+	comb = append(comb, noFirst...)
+	comb = append(comb, hasFirst...)
+	return
+}
+
+func generate(path string) map[string][]string {
+	cards := "3456789TJQKA2"
+	rule := map[string][]string{}
+	rule["single"] = []string{}
+	rule["pair"] = []string{}
+	rule["trio"] = []string{}
+	rule["bomb"] = []string{}
+	for _, c := range cards {
+		card := string(c)
+		rule["single"] = append(rule["single"], card)
+		rule["pair"] = append(rule["pair"], card+card)
+		rule["trio"] = append(rule["trio"], card+card+card)
+		rule["bomb"] = append(rule["bomb"], card+card+card+card)
+	}
+	for _, num := range []int{5, 6, 7, 8, 9, 10, 11, 12} {
+		rule["seq_single"+strconv.Itoa(num)] = generateSeq(num, rule["single"])
+	}
+	for _, num := range []int{3, 4, 5, 6, 7, 8, 9, 10} {
+		rule["seq_pair"+strconv.Itoa(num)] = generateSeq(num, rule["pair"])
+	}
+	for _, num := range []int{2, 3, 4, 5, 6} {
+		rule["seq_trio"+strconv.Itoa(num)] = generateSeq(num, rule["trio"])
+	}
+	rule["single"] = append(rule["single"], "L")
+	rule["single"] = append(rule["single"], "B")
+	rule["rocket"] = append(rule["rocket"], "BL")
+
+	rule["trio_single"] = make([]string, 0)
+	rule["trio_pair"] = make([]string, 0)
+
+	for _, t := range rule["trio"] {
+		for _, s := range rule["single"] {
+			if s[0] != t[0] {
+				rule["trio_single"] = append(rule["trio_single"], t+s)
+			}
+		}
+		for _, p := range rule["pair"] {
+			if p[0] != t[0] {
+				rule["trio_pair"] = append(rule["trio_pair"], t+p)
+			}
+		}
+	}
+	for _, num := range []int{2, 3, 4, 5} {
+		seqTrioSingle := []string(nil)
+		seqTrioPair := []string(nil)
+		for _, seqTrio := range rule["seq_trio"+strconv.Itoa(num)] {
+			seq := make([]string, len(rule["single"]))
+			copy(seq, rule["single"])
+			for i := 0; i < len(seqTrio); i = i + 3 {
+				for k, v := range seq {
+					if v[0] == seqTrio[i] {
+						copy(seq[k:], seq[k+1:])
+						seq = seq[:len(seq)-1]
+						break
+					}
+				}
+			}
+			for _, singleCombination := range combination(seq, len(seqTrio)/3) {
+				seqTrioSingle = append(seqTrioSingle, seqTrio+singleCombination)
+				var hasJoker bool
+				for _, single := range singleCombination {
+					if single == 'L' || single == 'B' {
+						hasJoker = true
+					}
+				}
+				if !hasJoker {
+					seqTrioPair = append(seqTrioPair, seqTrio+singleCombination+singleCombination)
+				}
+			}
+		}
+		rule["seq_trio_single"+strconv.Itoa(num)] = seqTrioSingle
+		rule["seq_trio_pair"+strconv.Itoa(num)] = seqTrioPair
+	}
+
+	rule["bomb_single"] = []string(nil)
+	rule["bomb_pair"] = []string(nil)
+	for _, b := range rule["bomb"] {
+		seq := make([]string, len(rule["single"]))
+		copy(seq, rule["single"])
+		for i, single := range seq {
+			if single[0] == b[0] {
+				copy(seq[i:], seq[i+1:])
+				seq = seq[:len(seq)-1]
+			}
+		}
+		for _, comb := range combination(seq, 2) {
+			rule["bomb_single"] = append(rule["bomb_single"], b+comb)
+			if comb[0] != 'L' && comb[0] != 'B' && comb[1] != 'L' && comb[1] != 'B' {
+				rule["bomb_pair"] = append(rule["bomb_pair"], b+comb+comb)
+			}
+		}
+	}
+
+	res, err := json.Marshal(rule)
+	if err != nil {
+		panic("json marsha1 RULE err :" + err.Error())
+	}
+	file, err := os.Create(path)
+	defer func() {
+		err = file.Close()
+		if err != nil {
+			logs.Error("generate err: %v", err)
+		}
+	}()
+	if err != nil {
+		panic("create rule.json err:" + err.Error())
+	}
+	_, err = file.Write(res)
+	if err != nil {
+		panic("create rule.json err:" + err.Error())
+	}
+	return rule
 }

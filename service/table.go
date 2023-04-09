@@ -38,7 +38,7 @@ func (table *Table) AllCalled() bool {
 	return true
 }
 
-// 一局结束
+// GameOver 一局结束
 func (table *Table) GameOver(client *ClientController) {
 	coin := table.Creator.Room.EntranceFee * table.GameManage.MaxCallScore * table.GameManage.Multiple
 	table.State = GameEnd
@@ -62,7 +62,7 @@ func (table *Table) GameOver(client *ClientController) {
 	logs.Debug("table[%d] game over", table.TableId)
 }
 
-// 叫分阶段结束
+// CallEnd 叫分阶段结束
 func (table *Table) CallEnd() {
 	table.State = GamePlaying
 	table.GameManage.FirstCallScore = table.GameManage.FirstCallScore.Next
@@ -84,7 +84,7 @@ func (table *Table) CallEnd() {
 	}
 }
 
-// 客户端加入牌桌
+// JoinTable 客户端加入牌桌
 func (table *Table) JoinTable(c *ClientController) {
 	table.Lock.Lock()
 	defer table.Lock.Unlock()
