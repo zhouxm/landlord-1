@@ -15,6 +15,23 @@ var (
 	TypeToPokers = make(map[string][]*Combination, 38)
 )
 
+const (
+	single          = "single"
+	pair            = "pair"
+	trio            = "trio"
+	bomb            = "bomb"
+	seq_single      = "seq_single"
+	seq_pair        = "seq_pair"
+	seq_trio        = "seq_trio"
+	rocket          = "rocket"
+	trio_single     = "trio_single"
+	trio_pair       = "trio_pair"
+	seq_trio_single = "seq_trio_single"
+	seq_trio_pair   = "seq_trio_pair"
+	bomb_single     = "bomb_single"
+	bomb_pair       = "bomb_pair"
+)
+
 type Combination struct {
 	Type  string
 	Score int
@@ -169,7 +186,7 @@ func ComparePoker(baseNum, comparedNum []int) (int, bool) {
 				return -1, false
 			} else {
 				comparedType, _ := pokersValue(toPokers(comparedNum))
-				if comparedType == "rocket" || comparedType == "bomb" {
+				if comparedType == rocket || comparedType == bomb {
 					return 1, true
 				}
 				return 1, false
@@ -182,13 +199,13 @@ func ComparePoker(baseNum, comparedNum []int) (int, bool) {
 	if baseType == comparedType {
 		return comparedScore - baseScore, false
 	}
-	if comparedType == "rocket" {
+	if comparedType == rocket {
 		return 1, true
 	}
-	if baseType == "rocket" {
+	if baseType == rocket {
 		return -1, false
 	}
-	if comparedType == "bomb" {
+	if comparedType == bomb {
 		return 1, true
 	}
 	return 0, false
@@ -210,21 +227,21 @@ func CardsAbove(handsNum, lastShotNum []int) (aboveNum []int) {
 			return
 		}
 	}
-	if cardType != "boom" && cardType != "rocket" {
-		for _, combination := range TypeToPokers["boom"] {
+	if cardType != bomb && cardType != rocket {
+		for _, combination := range TypeToPokers[bomb] {
 			if isContains(handCards, combination.Poker) {
 				aboveNum = pokersInHand(handsNum, combination.Poker)
 				return
 			}
 		}
-	} else if isContains(handCards, "Ww") {
-		aboveNum = pokersInHand(handsNum, "Ww")
+	} else if isContains(handCards, "LB") {
+		aboveNum = pokersInHand(handsNum, "LB")
 		return
 	}
 	return
 }
 
-// 生成连续num个的单牌的顺子
+// 根据sep，生成长度为num的顺子集合
 func generateSeq(num int, seq []string) (res []string) {
 	for i, _ := range seq {
 		if i+num > 12 {
@@ -272,51 +289,55 @@ func combination(seq []string, num int) (comb []string) {
 func generate(path string) map[string][]string {
 	cards := "3456789TJQKA2"
 	rule := map[string][]string{}
-	rule["single"] = []string{}
-	rule["pair"] = []string{}
-	rule["trio"] = []string{}
-	rule["bomb"] = []string{}
+	rule[single] = []string{}
+	rule[pair] = []string{}
+	rule[trio] = []string{}
+	rule[bomb] = []string{}
 	for _, c := range cards {
 		card := string(c)
-		rule["single"] = append(rule["single"], card)
-		rule["pair"] = append(rule["pair"], card+card)
-		rule["trio"] = append(rule["trio"], card+card+card)
-		rule["bomb"] = append(rule["bomb"], card+card+card+card)
+		rule[single] = append(rule[single], card)
+		rule[pair] = append(rule[pair], card+card)
+		rule[trio] = append(rule[trio], card+card+card)
+		rule[bomb] = append(rule[bomb], card+card+card+card)
 	}
+	// 生成单顺  34567
 	for _, num := range []int{5, 6, 7, 8, 9, 10, 11, 12} {
-		rule["seq_single"+strconv.Itoa(num)] = generateSeq(num, rule["single"])
+		rule[seq_single+strconv.Itoa(num)] = generateSeq(num, rule[single])
 	}
+	// 生成连对 334455
 	for _, num := range []int{3, 4, 5, 6, 7, 8, 9, 10} {
-		rule["seq_pair"+strconv.Itoa(num)] = generateSeq(num, rule["pair"])
+		rule[seq_pair+strconv.Itoa(num)] = generateSeq(num, rule[pair])
 	}
+	// 飞机不带翅膀  333444
 	for _, num := range []int{2, 3, 4, 5, 6} {
-		rule["seq_trio"+strconv.Itoa(num)] = generateSeq(num, rule["trio"])
+		rule[seq_trio+strconv.Itoa(num)] = generateSeq(num, rule[trio])
 	}
-	rule["single"] = append(rule["single"], "L")
-	rule["single"] = append(rule["single"], "B")
-	rule["rocket"] = append(rule["rocket"], "BL")
 
-	rule["trio_single"] = make([]string, 0)
-	rule["trio_pair"] = make([]string, 0)
+	rule[single] = append(rule[single], "L")
+	rule[single] = append(rule[single], "B")
+	rule[rocket] = append(rule[rocket], "LB")
 
-	for _, t := range rule["trio"] {
-		for _, s := range rule["single"] {
+	rule[trio_single] = make([]string, 0)
+	rule[trio_pair] = make([]string, 0)
+
+	for _, t := range rule[trio] {
+		for _, s := range rule[single] {
 			if s[0] != t[0] {
-				rule["trio_single"] = append(rule["trio_single"], t+s)
+				rule[trio_single] = append(rule[trio_single], t+s)
 			}
 		}
-		for _, p := range rule["pair"] {
+		for _, p := range rule[pair] {
 			if p[0] != t[0] {
-				rule["trio_pair"] = append(rule["trio_pair"], t+p)
+				rule[trio_pair] = append(rule[trio_pair], t+p)
 			}
 		}
 	}
 	for _, num := range []int{2, 3, 4, 5} {
 		seqTrioSingle := []string(nil)
 		seqTrioPair := []string(nil)
-		for _, seqTrio := range rule["seq_trio"+strconv.Itoa(num)] {
-			seq := make([]string, len(rule["single"]))
-			copy(seq, rule["single"])
+		for _, seqTrio := range rule[seq_trio+strconv.Itoa(num)] {
+			seq := make([]string, len(rule[single]))
+			copy(seq, rule[single])
 			for i := 0; i < len(seqTrio); i = i + 3 {
 				for k, v := range seq {
 					if v[0] == seqTrio[i] {
@@ -339,15 +360,15 @@ func generate(path string) map[string][]string {
 				}
 			}
 		}
-		rule["seq_trio_single"+strconv.Itoa(num)] = seqTrioSingle
-		rule["seq_trio_pair"+strconv.Itoa(num)] = seqTrioPair
+		rule[seq_trio_single+strconv.Itoa(num)] = seqTrioSingle
+		rule[seq_trio_pair+strconv.Itoa(num)] = seqTrioPair
 	}
 
-	rule["bomb_single"] = []string(nil)
-	rule["bomb_pair"] = []string(nil)
-	for _, b := range rule["bomb"] {
-		seq := make([]string, len(rule["single"]))
-		copy(seq, rule["single"])
+	rule[bomb_single] = []string(nil)
+	rule[bomb_pair] = []string(nil)
+	for _, b := range rule[bomb] {
+		seq := make([]string, len(rule[single]))
+		copy(seq, rule[single])
 		for i, single := range seq {
 			if single[0] == b[0] {
 				copy(seq[i:], seq[i+1:])
@@ -355,17 +376,18 @@ func generate(path string) map[string][]string {
 			}
 		}
 		for _, comb := range combination(seq, 2) {
-			rule["bomb_single"] = append(rule["bomb_single"], b+comb)
+			rule[bomb_single] = append(rule[bomb_single], b+comb)
 			if comb[0] != 'L' && comb[0] != 'B' && comb[1] != 'L' && comb[1] != 'B' {
-				rule["bomb_pair"] = append(rule["bomb_pair"], b+comb+comb)
+				rule[bomb_pair] = append(rule[bomb_pair], b+comb+comb)
 			}
 		}
 	}
 
 	res, err := json.Marshal(rule)
-	if err != nil {
+	if err == nil {
 		panic("json marsha1 RULE err :" + err.Error())
 	}
+
 	file, err := os.Create(path)
 	defer func() {
 		err = file.Close()
