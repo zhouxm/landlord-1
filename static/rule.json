@@ -2197,7 +2197,7 @@
     "56789TJQK",
     "6789TJQKA"
   ],
-  "seq_trio2": [
+  "seq_triplet2": [
     "333444",
     "444555",
     "555666",
@@ -2210,7 +2210,7 @@
     "QQQKKK",
     "KKKAAA"
   ],
-  "seq_trio3": [
+  "seq_triplet3": [
     "333444555",
     "444555666",
     "555666777",
@@ -2222,7 +2222,7 @@
     "JJJQQQKKK",
     "QQQKKKAAA"
   ],
-  "seq_trio4": [
+  "seq_triplet4": [
     "333444555666",
     "444555666777",
     "555666777888",
@@ -2233,7 +2233,7 @@
     "TTTJJJQQQKKK",
     "JJJQQQKKKAAA"
   ],
-  "seq_trio5": [
+  "seq_triplet5": [
     "333444555666777",
     "444555666777888",
     "555666777888999",
@@ -2243,7 +2243,7 @@
     "999TTTJJJQQQKKK",
     "TTTJJJQQQKKKAAA"
   ],
-  "seq_trio6": [
+  "seq_triplet6": [
     "333444555666777888",
     "444555666777888999",
     "555666777888999TTT",
@@ -2252,7 +2252,7 @@
     "888999TTTJJJQQQKKK",
     "999TTTJJJQQQKKKAAA"
   ],
-  "seq_trio_pair2": [
+  "seq_triplet_pair2": [
     "333444A2A2",
     "333444KAKA",
     "333444K2K2",
@@ -2859,7 +2859,7 @@
     "KKKAAA3Q3Q",
     "KKKAAA3232"
   ],
-  "seq_trio_pair3": [
+  "seq_triplet_pair3": [
     "333444555KA2KA2",
     "333444555QA2QA2",
     "333444555QKAQKA",
@@ -4061,7 +4061,7 @@
     "QQQKKKAAA34J34J",
     "QQQKKKAAA342342"
   ],
-  "seq_trio_pair4": [
+  "seq_triplet_pair4": [
     "333444555666QKA2QKA2",
     "333444555666JKA2JKA2",
     "333444555666JQA2JQA2",
@@ -5197,7 +5197,7 @@
     "JJJQQQKKKAAA345T345T",
     "JJJQQQKKKAAA34523452"
   ],
-  "seq_trio_pair5": [
+  "seq_triplet_pair5": [
     "333444555666777JQKA2JQKA2",
     "333444555666777TQKA2TQKA2",
     "333444555666777TJKA2TJKA2",
@@ -5647,7 +5647,7 @@
     "TTTJJJQQQKKKAAA3456934569",
     "TTTJJJQQQKKKAAA3456234562"
   ],
-  "seq_trio_single2": [
+  "seq_triplet_single2": [
     "333444LB",
     "3334442L",
     "3334442B",
@@ -6507,7 +6507,7 @@
     "KKKAAA3L",
     "KKKAAA3B"
   ],
-  "seq_trio_single3": [
+  "seq_triplet_single3": [
     "3334445552LB",
     "333444555ALB",
     "333444555A2L",
@@ -8709,7 +8709,7 @@
     "QQQKKKAAA34L",
     "QQQKKKAAA34B"
   ],
-  "seq_trio_single4": [
+  "seq_triplet_single4": [
     "333444555666A2LB",
     "333444555666K2LB",
     "333444555666KALB",
@@ -11681,7 +11681,7 @@
     "JJJQQQKKKAAA345L",
     "JJJQQQKKKAAA345B"
   ],
-  "seq_trio_single5": [
+  "seq_triplet_single5": [
     "333444555666777KA2LB",
     "333444555666777QA2LB",
     "333444555666777QK2LB",
@@ -13716,7 +13716,7 @@
     "L",
     "B"
   ],
-  "trio": [
+  "triplet": [
     "333",
     "444",
     "555",
@@ -13731,7 +13731,7 @@
     "AAA",
     "222"
   ],
-  "trio_pair": [
+  "triplet_pair": [
     "33344",
     "33355",
     "33366",
@@ -13889,7 +13889,7 @@
     "222KK",
     "222AA"
   ],
-  "trio_single": [
+  "triplet_single": [
     "3334",
     "3335",
     "3336",

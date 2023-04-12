@@ -38,9 +38,9 @@ PG.Poker.toCards = function (pokers) {
       pid = pid[0]
     }
     if (pid === 52) {
-      cards.push('B')
-    } else if (pid === 53) {
       cards.push('L')
+    } else if (pid === 53) {
+      cards.push('B')
     } else {
       cards.push('A234567890JQK'[pid % 13])
     }
@@ -159,9 +159,9 @@ PG.Rule._CardsType = [
   'bomb',
   'single',
   'pair',
-  'trio',
-  'trio_pair',
-  'trio_single',
+  'triplet',
+  'triplet_pair',
+  'triplet_single',
   'seq_single5',
   'seq_single6',
   'seq_single7',
@@ -178,19 +178,19 @@ PG.Rule._CardsType = [
   'seq_pair8',
   'seq_pair9',
   'seq_pair10',
-  'seq_trio2',
-  'seq_trio3',
-  'seq_trio4',
-  'seq_trio5',
-  'seq_trio6',
-  'seq_trio_pair2',
-  'seq_trio_pair3',
-  'seq_trio_pair4',
-  'seq_trio_pair5',
-  'seq_trio_single2',
-  'seq_trio_single3',
-  'seq_trio_single4',
-  'seq_trio_single5',
+  'seq_triplet2',
+  'seq_triplet3',
+  'seq_triplet4',
+  'seq_triplet5',
+  'seq_triplet6',
+  'seq_triplet_pair2',
+  'seq_triplet_pair3',
+  'seq_triplet_pair4',
+  'seq_triplet_pair5',
+  'seq_triplet_single2',
+  'seq_triplet_single3',
+  'seq_triplet_single4',
+  'seq_triplet_single5',
   'bomb_pair',
   'bomb_single',
 ]

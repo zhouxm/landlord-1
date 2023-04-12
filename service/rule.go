@@ -16,20 +16,20 @@ var (
 )
 
 const (
-	single          = "single"
-	pair            = "pair"
-	trio            = "trio"
-	bomb            = "bomb"
-	seq_single      = "seq_single"
-	seq_pair        = "seq_pair"
-	seq_trio        = "seq_trio"
-	rocket          = "rocket"
-	trio_single     = "trio_single"
-	trio_pair       = "trio_pair"
-	seq_trio_single = "seq_trio_single"
-	seq_trio_pair   = "seq_trio_pair"
-	bomb_single     = "bomb_single"
-	bomb_pair       = "bomb_pair"
+	single             = "single"
+	pair               = "pair"
+	triplet            = "triplet"
+	bomb               = "bomb"
+	rocket             = "rocket"
+	seq_single         = "seq_single"
+	seq_pair           = "seq_pair"
+	seq_triplet        = "seq_triplet"
+	triplet_single     = "triplet_single"
+	triplet_pair       = "triplet_pair"
+	seq_triplet_single = "seq_triplet_single"
+	seq_triplet_pair   = "seq_triplet_pair"
+	bomb_single        = "bomb_single"
+	bomb_pair          = "bomb_pair"
 )
 
 type Combination struct {
@@ -58,16 +58,16 @@ func init() {
 		}
 	}
 
-	for pokerType, pokers := range rule {
+	for comboType, pokers := range rule {
 		for score, poker := range pokers {
 			cards := sortPokers(poker)
 			p := &Combination{
-				Type:  pokerType,
+				Type:  comboType,
 				Score: score,
 				Poker: cards,
 			}
 			Pokers[cards] = p
-			TypeToPokers[pokerType] = append(TypeToPokers[pokerType], p)
+			TypeToPokers[comboType] = append(TypeToPokers[comboType], p)
 		}
 	}
 }
@@ -291,13 +291,13 @@ func generate(path string) map[string][]string {
 	rule := map[string][]string{}
 	rule[single] = []string{}
 	rule[pair] = []string{}
-	rule[trio] = []string{}
+	rule[triplet] = []string{}
 	rule[bomb] = []string{}
 	for _, c := range cards {
 		card := string(c)
 		rule[single] = append(rule[single], card)
 		rule[pair] = append(rule[pair], card+card)
-		rule[trio] = append(rule[trio], card+card+card)
+		rule[triplet] = append(rule[triplet], card+card+card)
 		rule[bomb] = append(rule[bomb], card+card+card+card)
 	}
 	// 生成单顺  34567
@@ -310,45 +310,45 @@ func generate(path string) map[string][]string {
 	}
 	// 飞机不带翅膀  333444
 	for _, num := range []int{2, 3, 4, 5, 6} {
-		rule[seq_trio+strconv.Itoa(num)] = generateSeq(num, rule[trio])
+		rule[seq_triplet+strconv.Itoa(num)] = generateSeq(num, rule[triplet])
 	}
 
 	rule[single] = append(rule[single], "L")
 	rule[single] = append(rule[single], "B")
 	rule[rocket] = append(rule[rocket], "LB")
 
-	rule[trio_single] = make([]string, 0)
-	rule[trio_pair] = make([]string, 0)
+	rule[triplet_single] = make([]string, 0)
+	rule[triplet_pair] = make([]string, 0)
 
-	for _, t := range rule[trio] {
+	for _, t := range rule[triplet] {
 		for _, s := range rule[single] {
 			if s[0] != t[0] {
-				rule[trio_single] = append(rule[trio_single], t+s)
+				rule[triplet_single] = append(rule[triplet_single], t+s)
 			}
 		}
 		for _, p := range rule[pair] {
 			if p[0] != t[0] {
-				rule[trio_pair] = append(rule[trio_pair], t+p)
+				rule[triplet_pair] = append(rule[triplet_pair], t+p)
 			}
 		}
 	}
 	for _, num := range []int{2, 3, 4, 5} {
-		seqTrioSingle := []string(nil)
-		seqTrioPair := []string(nil)
-		for _, seqTrio := range rule[seq_trio+strconv.Itoa(num)] {
+		seqTripletSingle := []string(nil)
+		seqTripletPair := []string(nil)
+		for _, seqTriplet := range rule[seq_triplet+strconv.Itoa(num)] {
 			seq := make([]string, len(rule[single]))
 			copy(seq, rule[single])
-			for i := 0; i < len(seqTrio); i = i + 3 {
+			for i := 0; i < len(seqTriplet); i = i + 3 {
 				for k, v := range seq {
-					if v[0] == seqTrio[i] {
+					if v[0] == seqTriplet[i] {
 						copy(seq[k:], seq[k+1:])
 						seq = seq[:len(seq)-1]
 						break
 					}
 				}
 			}
-			for _, singleCombination := range combination(seq, len(seqTrio)/3) {
-				seqTrioSingle = append(seqTrioSingle, seqTrio+singleCombination)
+			for _, singleCombination := range combination(seq, len(seqTriplet)/3) {
+				seqTripletSingle = append(seqTripletSingle, seqTriplet+singleCombination)
 				var hasJoker bool
 				for _, single := range singleCombination {
 					if single == 'L' || single == 'B' {
@@ -356,12 +356,12 @@ func generate(path string) map[string][]string {
 					}
 				}
 				if !hasJoker {
-					seqTrioPair = append(seqTrioPair, seqTrio+singleCombination+singleCombination)
+					seqTripletPair = append(seqTripletPair, seqTriplet+singleCombination+singleCombination)
 				}
 			}
 		}
-		rule[seq_trio_single+strconv.Itoa(num)] = seqTrioSingle
-		rule[seq_trio_pair+strconv.Itoa(num)] = seqTrioPair
+		rule[seq_triplet_single+strconv.Itoa(num)] = seqTripletSingle
+		rule[seq_triplet_pair+strconv.Itoa(num)] = seqTripletPair
 	}
 
 	rule[bomb_single] = []string(nil)
