@@ -20,12 +20,6 @@ PG.Game.prototype = {
     this.roomId = roomId
   },
 
-  debug_log(obj) {
-    console.log('*******')
-    console.log(obj)
-    console.log('********')
-  },
-
   create: function () {
     this.stage.backgroundColor = '#182d3b'
 
@@ -98,9 +92,7 @@ PG.Game.prototype = {
         var playerId = packet[1]
         var score = packet[2]
         var callend = packet[3]
-        this.debug_log(callend)
         this.whoseTurn = this.uidToSeat(playerId)
-        //this.debug_log(playerId);
 
         var hanzi = ['不叫', '一分', '两分', '三分']
         this.players[this.whoseTurn].say(hanzi[score])
@@ -186,7 +178,7 @@ PG.Game.prototype = {
     this.players.push(PG.createPlay(0, this))
     this.players.push(PG.createPlay(1, this))
     this.players.push(PG.createPlay(2, this))
-    player_id = [1, 11, 12]
+    let player_id = [1, 11, 12]
     for (var i = 0; i < 3; i++) {
       //this.players[i].uiHead.kill();
       this.players[i].updateInfo(player_id[i], ' ')
@@ -199,23 +191,23 @@ PG.Game.prototype = {
   update: function () {},
 
   uidToSeat: function (uid) {
-    for (var i = 0; i < 3; i++) {
-      //	        this.debug_log(this.players[i].uid);
-      if (uid == this.players[i].uid) return i
+    for (let i = 0; i < 3; i++) {
+      if (uid === this.players[i].uid) return i
     }
     console.log('ERROR uidToSeat:' + uid)
     return -1
   },
 
   dealPoker: function (pokers) {
-    for (var i = 0; i < 3; i++) {
+    let i;
+    for (i = 0; i < 3; i++) {
       var p = new PG.Poker(this, 54, 54)
       this.game.world.add(p)
       this.tablePoker[i] = p.id
       this.tablePoker[i + 3] = p
     }
 
-    for (var i = 0; i < 17; i++) {
+    for (i = 0; i < 17; i++) {
       this.players[2].pokerInHand.push(54)
       this.players[1].pokerInHand.push(54)
       this.players[0].pokerInHand.push(pokers.pop())
@@ -231,7 +223,7 @@ PG.Game.prototype = {
   },
 
   showLastThreePoker: function () {
-    for (var i = 0; i < 3; i++) {
+    for (let i = 0; i < 3; i++) {
       var pokerId = this.tablePoker[i]
       var p = this.tablePoker[i + 3]
       p.id = pokerId
@@ -242,20 +234,23 @@ PG.Game.prototype = {
   },
 
   dealLastThreePoker: function () {
-    var turnPlayer = this.players[this.whoseTurn]
+    let p;
+    let i;
+    const turnPlayer = this.players[this.whoseTurn];
 
-    for (var i = 0; i < 3; i++) {
-      var pid = this.tablePoker[i]
-      var poker = this.tablePoker[i + 3]
+    for (i = 0; i < 3; i++) {
+      const pid = this.tablePoker[i];
+      const poker = this.tablePoker[i + 3];
       turnPlayer.pokerInHand.push(pid)
       turnPlayer.pushAPoker(poker)
     }
     turnPlayer.sortPoker()
-    if (this.whoseTurn == 0) {
+    if (this.whoseTurn === 0) {
       turnPlayer.arrangePoker()
-      for (var i = 0; i < 3; i++) {
-        var p = this.tablePoker[i + 3]
-        var tween = this.game.add.tween(p).to({ y: this.game.world.height - PG.PH * 0.8 }, 400, Phaser.Easing.Default, true)
+      for (i = 0; i < 3; i++) {
+        p = this.tablePoker[i + 3];
+        const tween = this.game.add.tween(p).to({y: this.game.world.height - PG.PH * 0.8}, 400, Phaser.Easing.Default, true);
+
         function adjust(p) {
           this.game.add.tween(p).to({ y: this.game.world.height - PG.PH / 2 }, 400, Phaser.Easing.Default, true, 400)
         }
@@ -263,8 +258,8 @@ PG.Game.prototype = {
       }
     } else {
       var first = turnPlayer.findAPoker(54)
-      for (var i = 0; i < 3; i++) {
-        var p = this.tablePoker[i + 3]
+      for (i = 0; i < 3; i++) {
+        p = this.tablePoker[i + 3];
         p.frame = 54
         p.frame = 54
         this.game.add.tween(p).to({ x: first.x, y: first.y }, 200, Phaser.Easing.Default, true)
@@ -273,7 +268,7 @@ PG.Game.prototype = {
 
     this.tablePoker = []
     this.lastShotPlayer = turnPlayer
-    if (this.whoseTurn == 0) {
+    if (this.whoseTurn === 0) {
       this.startPlay()
     }
   },
@@ -282,7 +277,7 @@ PG.Game.prototype = {
     this.whoseTurn = this.uidToSeat(packet[1])
     var turnPlayer = this.players[this.whoseTurn]
     var pokers = packet[2]
-    if (pokers.length == 0) {
+    if (pokers.length === 0) {
       this.players[this.whoseTurn].say('不出')
     } else {
       var pokersPic = {}
@@ -312,7 +307,7 @@ PG.Game.prototype = {
     }
     if (turnPlayer.pokerInHand.length > 0) {
       this.whoseTurn = (this.whoseTurn + 1) % 3
-      if (this.whoseTurn == 0) {
+      if (this.whoseTurn === 0) {
         this.game.time.events.add(1000, this.startPlay, this)
       }
     }
@@ -326,7 +321,7 @@ PG.Game.prototype = {
       audio.play()
     }
 
-    if (this.whoseTurn == 0) {
+    if (this.whoseTurn === 0) {
       var step = this.game.world.width / 6
       var ss = [1.5, 1, 0.5, 0]
       var sx = this.game.world.width / 2 - step * ss[minscore]
@@ -364,7 +359,7 @@ PG.Game.prototype = {
   },
 
   isLastShotPlayer: function () {
-    return this.players[this.whoseTurn] == this.lastShotPlayer
+    return this.players[this.whoseTurn] === this.lastShotPlayer
   },
 
   createTableLayer: function (tables) {
@@ -391,7 +386,7 @@ PG.Game.prototype = {
       text.anchor.set(0.5, 0)
       group.add(text)
 
-      if (i == tables.length - 1) {
+      if (i === tables.length - 1) {
         text.text = '新建房间'
       }
     }
@@ -407,7 +402,7 @@ PG.Game.prototype = {
   },
 
   onJoin: function (btn) {
-    if (btn.tableId == -1) {
+    if (btn.tableId === -1) {
       this.send_message([PG.Protocol.REQ_NEW_TABLE])
     } else {
       this.send_message([PG.Protocol.REQ_JOIN_TABLE, btn.tableId])

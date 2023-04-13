@@ -1,4 +1,4 @@
-﻿PG = {
+PG = {
   music: '',
   playerInfo: {},
   orientated: false,
