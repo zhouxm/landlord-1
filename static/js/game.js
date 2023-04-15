@@ -46,10 +46,10 @@ PG.Game.prototype = {
   },
 
   onmessage: function (packet) {
-    var opcode = packet[0]
+    const opcode = packet[0];
     switch (opcode) {
       case PG.Protocol.RSP_JOIN_ROOM:
-        if (this.roomId == 1) {
+        if (this.roomId === 1) {
           PG.Socket.send([PG.Protocol.REQ_JOIN_TABLE, -1])
         } else {
           this.createTableLayer(packet[1])
@@ -65,15 +65,15 @@ PG.Game.prototype = {
       case PG.Protocol.RSP_JOIN_TABLE:
         this.tableId = packet[1]
         this.titleBar.text = '房间:' + this.tableId
-        var playerIds = packet[2]
+        const playerIds = packet[2];
         if (playerIds.length <= 2) {
           console.log(playerIds)
           break
         }
-        for (var i = 0; i < playerIds.length; i++) {
-          if (playerIds[i][0] == this.players[0].uid) {
-            var info_1 = playerIds[(i + 1) % 3]
-            var info_2 = playerIds[(i + 2) % 3]
+        for (let i = 0; i < playerIds.length; i++) {
+          if (playerIds[i][0] === this.players[0].uid) {
+            const info_1 = playerIds[(i + 1) % 3];
+            const info_2 = playerIds[(i + 2) % 3];
             this.players[1].updateInfo(info_1[0], info_1[1])
             this.players[2].updateInfo(info_2[0], info_2[1])
             break
@@ -81,20 +81,18 @@ PG.Game.prototype = {
         }
         break
       case PG.Protocol.RSP_DEAL_POKER:
-        var playerId = packet[1]
-        var pokers = packet[2]
+        const pokers = packet[2];
         console.log(pokers)
         this.dealPoker(pokers)
-        this.whoseTurn = this.uidToSeat(playerId)
+        this.whoseTurn = this.uidToSeat(packet[1])
         this.startCallScore(0)
         break
       case PG.Protocol.RSP_CALL_SCORE:
-        var playerId = packet[1]
-        var score = packet[2]
-        var callend = packet[3]
-        this.whoseTurn = this.uidToSeat(playerId)
+        const score = packet[2];
+        const callend = packet[3];
+        this.whoseTurn = this.uidToSeat(packet[1])
 
-        var hanzi = ['不叫', '一分', '两分', '三分']
+        const hanzi = ['不叫', '一分', '两分', '三分'];
         this.players[this.whoseTurn].say(hanzi[score])
         if (!callend) {
           this.whoseTurn = (this.whoseTurn + 1) % 3
@@ -113,14 +111,14 @@ PG.Game.prototype = {
         this.handleShotPoker(packet)
         break
       case PG.Protocol.RSP_GAME_OVER:
-        var winner = packet[1]
-        var coin = packet[2]
+        const winner = packet[1];
+        const coin = packet[2];
 
-        var loserASeat = this.uidToSeat(packet[3][0])
+        const loserASeat = this.uidToSeat(packet[3][0]);
         this.players[loserASeat].replacePoker(packet[3], 1)
         this.players[loserASeat].reDealPoker()
 
-        var loserBSeat = this.uidToSeat(packet[4][0])
+        const loserBSeat = this.uidToSeat(packet[4][0]);
         this.players[loserBSeat].replacePoker(packet[4], 1)
         this.players[loserBSeat].reDealPoker()
         //                 this.players[loserBSeat].removeAllPoker();
@@ -136,7 +134,7 @@ PG.Game.prototype = {
         this.game.time.events.add(3000, gameOver, this)
         break
       case PG.Protocol.RSP_CHEAT:
-        var seat = this.uidToSeat(packet[1])
+        const seat = this.uidToSeat(packet[1]);
         this.players[seat].replacePoker(packet[2], 0)
         this.players[seat].reDealPoker()
         break
@@ -148,6 +146,7 @@ PG.Game.prototype = {
   },
 
   cleanWorld: function () {
+    let i;
     for (i = 0; i < 3; i++) {
       this.players[i].cleanPokers()
       try {
@@ -156,8 +155,8 @@ PG.Game.prototype = {
       this.players[i].uiHead.frameName = 'icon_farmer.png'
     }
 
-    for (var i = 0; i < this.tablePoker.length; i++) {
-      var p = this.tablePokerPic[this.tablePoker[i]]
+    for (i = 0; i < this.tablePoker.length; i++) {
+      const p = this.tablePokerPic[this.tablePoker[i]];
       // p.kill();
       p.destroy()
     }
@@ -201,7 +200,7 @@ PG.Game.prototype = {
   dealPoker: function (pokers) {
     let i;
     for (i = 0; i < 3; i++) {
-      var p = new PG.Poker(this, 54, 54)
+      const p = new PG.Poker(this, 54, 54);
       this.game.world.add(p)
       this.tablePoker[i] = p.id
       this.tablePoker[i + 3] = p

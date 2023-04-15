@@ -35,7 +35,7 @@ func (game *Game) AllCalled() bool {
 //	coin := game.Creator.Room.EntranceFee * game.GameManage.MaxCallScore * game.GameManage.Multiple
 //	game.State = GameEnd
 //	for _, c := range game.gameClients {
-//		res := []interface{}{RepGameOver, client.User.Id}
+//		res := []interface{}{RespGameOver, client.User.Id}
 //		if client == c {
 //			res = append(res, coin*2-100)
 //		} else {
@@ -69,7 +69,7 @@ func (game *Game) AllCalled() bool {
 //	for _, poker := range table.GameManage.Pokers {
 //		landLord.HandPokers = append(landLord.HandPokers, poker)
 //	}
-//	res := []interface{}{RepShowPoker, landLord.User.Id, table.GameManage.Pokers}
+//	res := []interface{}{RespShowPoker, landLord.User.Id, table.GameManage.Pokers}
 //	for _, c := range table.TableClients {
 //		logs.Debug("callEnd SendMsg:%v", res)
 //		c.SendMsg(res)

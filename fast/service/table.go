@@ -43,7 +43,7 @@ func (table *Table) GameOver(client *ClientController) {
 	coin := table.Creator.Room.EntranceFee * table.GameManage.MaxCallScore * table.GameManage.Multiple
 	table.State = GameEnd
 	for _, c := range table.TableClients {
-		res := []interface{}{RepGameOver, client.User.Id}
+		res := []interface{}{ResGameOver, client.User.Id}
 		if client == c {
 			res = append(res, coin*2-100)
 		} else {
@@ -77,7 +77,7 @@ func (table *Table) CallEnd() {
 	for _, poker := range table.GameManage.Pokers {
 		landLord.HandPokers = append(landLord.HandPokers, poker)
 	}
-	res := []interface{}{RepShowPoker, landLord.User.Id, table.GameManage.Pokers}
+	res := []interface{}{ResShowPoker, landLord.User.Id, table.GameManage.Pokers}
 	for _, c := range table.TableClients {
 		logs.Debug("callEnd SendMsg:%v", res)
 		c.SendMsg(res)
@@ -168,7 +168,7 @@ func (table *Table) dealPoker() {
 		}
 	}
 	response := make([]interface{}, 0, 3)
-	response = append(append(append(response, RepDealPoker), table.GameManage.FirstCallScore.User.Id), nil)
+	response = append(append(append(response, ResDealPoker), table.GameManage.FirstCallScore.User.Id), nil)
 	for _, client := range table.TableClients {
 		sort.Ints(client.HandPokers)
 		response[len(response)-1] = client.HandPokers
@@ -178,7 +178,7 @@ func (table *Table) dealPoker() {
 }
 
 func (table *Table) Chat(client *ClientController, msg string) {
-	res := []interface{}{RepChat, client.User.Id, msg}
+	res := []interface{}{ResChat, client.User.Id, msg}
 	for _, c := range table.TableClients {
 		logs.Debug("chat SendMsg:%v", res)
 		c.SendMsg(res)
@@ -198,8 +198,8 @@ func (table *Table) Reset() {
 	}
 	table.State = GameCallScore
 	if table.Creator != nil {
-		logs.Debug("reset table.Creator.SendMsg:%v", []interface{}{RepRestart})
-		table.Creator.SendMsg([]interface{}{RepRestart})
+		logs.Debug("reset table.Creator.SendMsg:%v", []interface{}{ResRestart})
+		table.Creator.SendMsg([]interface{}{ResRestart})
 	}
 	for _, c := range table.TableClients {
 		c.Reset()
@@ -226,7 +226,7 @@ func (table *Table) ShufflePokers() {
 func (table *Table) SyncUser() {
 	logs.Debug("sync user")
 	response := make([]interface{}, 0, 3)
-	response = append(append(response, RepJoinTable), table.TableId)
+	response = append(append(response, ResJoinTable), table.TableId)
 	tableUsers := make([][2]interface{}, 0, 2)
 	current := table.Creator
 	for i := 0; i < len(table.TableClients); i++ {
