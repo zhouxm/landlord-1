@@ -11,6 +11,7 @@ import (
 )
 
 var (
+	TotalCards   = "A23456789TJQK"
 	Pokers       = make(map[string]*Combination, 16384)
 	TypeToPokers = make(map[string][]*Combination, 38)
 )
@@ -109,7 +110,7 @@ func isContains(parent, child string) (result bool) {
 
 // toPokers 将牌编号转换为扑克牌
 func toPokers(num []int) string {
-	totalCards := "A234567890JQK"
+
 	res := make([]byte, 0)
 	for _, poker := range num {
 		if poker == 52 {
@@ -117,7 +118,7 @@ func toPokers(num []int) string {
 		} else if poker == 53 {
 			res = append(res, 'L')
 		} else {
-			res = append(res, totalCards[poker%13])
+			res = append(res, TotalCards[poker%13])
 		}
 	}
 	return string(res)
@@ -131,8 +132,7 @@ func toPoker(card byte) (poker []int) {
 	if card == 'L' {
 		return []int{53}
 	}
-	cards := "A234567890JQK"
-	for i, c := range []byte(cards) {
+	for i, c := range []byte(TotalCards) {
 		if c == card {
 			return []int{i, i + 13, i + 13*2, i + 13*3}
 		}
@@ -243,7 +243,7 @@ func CardsAbove(handsNum, lastShotNum []int) (aboveNum []int) {
 
 // 根据sep，生成长度为num的顺子集合
 func generateSeq(num int, seq []string) (res []string) {
-	for i, _ := range seq {
+	for i:= range seq {
 		if i+num > 12 {
 			break
 		}
@@ -287,13 +287,12 @@ func combination(seq []string, num int) (comb []string) {
 }
 
 func generate(path string) map[string][]string {
-	cards := "3456789TJQKA2"
 	rule := map[string][]string{}
 	rule[single] = []string{}
 	rule[pair] = []string{}
 	rule[triplet] = []string{}
 	rule[bomb] = []string{}
-	for _, c := range cards {
+	for _, c := range TotalCards {
 		card := string(c)
 		rule[single] = append(rule[single], card)
 		rule[pair] = append(rule[pair], card+card)

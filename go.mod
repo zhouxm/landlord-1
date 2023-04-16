@@ -6,6 +6,7 @@ require (
 	github.com/beego/beego/v2 v2.0.7
 	github.com/gorilla/websocket v1.5.0
 	github.com/smartystreets/goconvey v1.6.4
+	github.com/valyala/fastjson v1.6.4
 )
 
 require (

@@ -42,7 +42,7 @@ PG.Poker.toCards = function (pokers) {
     } else if (pid === 53) {
       cards.push('B')
     } else {
-      cards.push('A234567890JQK'[pid % 13])
+      cards.push('A23456789TJQK'[pid % 13])
     }
   }
   return cards
@@ -69,7 +69,7 @@ PG.Poker.toPokers = function (pokerInHands, cards) {
 }
 
 PG.Poker.toPoker = function (card) {
-  const cards = 'A234567890JQK'
+  const cards = 'A23456789TJQK'
   for (let i = 0; i < 13; i++) {
     if (card === cards[i]) {
       return [i, i + 13, i + 13 * 2, i + 13 * 3]
@@ -196,7 +196,7 @@ PG.Rule._CardsType = [
 ]
 
 PG.Rule.sorter = function (a, b) {
-  const card_str = '34567890JQKA2LB'
+  const card_str = '3456789TJQKA2LB'
   return card_str.indexOf(a) - card_str.indexOf(b)
 }
 
