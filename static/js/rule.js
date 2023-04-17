@@ -6,7 +6,7 @@ PG.Poker = function (game, id, frame) {
 
   return this
 }
-
+const TotalCards = 'A23456789TJQK'
 PG.Poker.prototype = Object.create(Phaser.Sprite.prototype)
 PG.Poker.prototype.constructor = PG.Poker
 
@@ -21,45 +21,45 @@ PG.Poker.comparePoker = function (a, b) {
   }
   a = a % 13
   b = b % 13
-  if (a === 1 || a === 0) {
+  if (a == 1 || a == 0) {
     a += 13
   }
-  if (b === 1 || b === 0) {
+  if (b == 1 || b == 0) {
     b += 13
   }
   return -(a - b)
 }
 
 PG.Poker.toCards = function (pokers) {
-  const cards = []
-  for (let i = 0; i < pokers.length; i++) {
-    let pid = pokers[i]
+  var cards = []
+  for (var i = 0; i < pokers.length; i++) {
+    var pid = pokers[i]
     if (pid instanceof Array) {
       pid = pid[0]
     }
-    if (pid === 52) {
+    if (pid == 52) {
       cards.push('L')
-    } else if (pid === 53) {
+    } else if (pid == 53) {
       cards.push('B')
     } else {
-      cards.push('A23456789TJQK'[pid % 13])
+      cards.push(TotalCards[pid % 13])
     }
   }
   return cards
 }
 
 PG.Poker.canCompare = function (pokersA, pokersB) {
-  const cardsA = this.toCards(pokersA)
-  const cardsB = this.toCards(pokersB)
-  return PG.Rule.cardsValue(cardsA)[0] === PG.Rule.cardsValue(cardsB)[0]
+  var cardsA = this.toCards(pokersA)
+  var cardsB = this.toCards(pokersB)
+  return PG.Rule.cardsValue(cardsA)[0] == PG.Rule.cardsValue(cardsB)[0]
 }
 
 PG.Poker.toPokers = function (pokerInHands, cards) {
-  const pokers = []
-  for (let i = 0; i < cards.length; i++) {
-    const candidates = this.toPoker(cards[i])
-    for (let j = 0; j < candidates.length; j++) {
-      if (pokerInHands.indexOf(candidates[j]) !== -1 && pokers.indexOf(candidates[j]) === -1) {
+  var pokers = []
+  for (var i = 0; i < cards.length; i++) {
+    var candidates = this.toPoker(cards[i])
+    for (var j = 0; j < candidates.length; j++) {
+      if (pokerInHands.indexOf(candidates[j]) != -1 && pokers.indexOf(candidates[j]) == -1) {
         pokers.push(candidates[j])
         break
       }
@@ -69,15 +69,14 @@ PG.Poker.toPokers = function (pokerInHands, cards) {
 }
 
 PG.Poker.toPoker = function (card) {
-  const cards = 'A23456789TJQK'
-  for (let i = 0; i < 13; i++) {
-    if (card === cards[i]) {
+  for (var i = 0; i < 13; i++) {
+    if (card == TotalCards[i]) {
       return [i, i + 13, i + 13 * 2, i + 13 * 3]
     }
   }
-  if (card === 'B') {
+  if (card == 'L') {
     return [52]
-  } else if (card === 'L') {
+  } else if (card == 'B') {
     return [53]
   }
   return [54]
@@ -86,14 +85,13 @@ PG.Poker.toPoker = function (card) {
 PG.Rule = {}
 
 PG.Rule.cardsAbove = function (handCards, turnCards) {
-  let i
-  const turnValue = this.cardsValue(turnCards)
-  if (turnValue[0] === '') {
+  var turnValue = this.cardsValue(turnCards)
+  if (turnValue[0] == '') {
     return ''
   }
   handCards.sort(this.sorter)
-  let oneRule = PG.RuleList[turnValue[0]]
-  for (i = turnValue[1] + 1; i < oneRule.length; i++) {
+  var oneRule = PG.RuleList[turnValue[0]]
+  for (var i = turnValue[1] + 1; i < oneRule.length; i++) {
     if (this.containsAll(handCards, oneRule[i])) {
       return oneRule[i]
     }
@@ -101,12 +99,12 @@ PG.Rule.cardsAbove = function (handCards, turnCards) {
 
   if (turnValue[1] < 1000) {
     oneRule = PG.RuleList['bomb']
-    for (i = 0; i < oneRule.length; i++) {
+    for (var i = 0; i < oneRule.length; i++) {
       if (this.containsAll(handCards, oneRule[i])) {
         return oneRule[i]
       }
     }
-    if (this.containsAll(handCards, 'BL')) {
+    if (this.containsAll(handCards, 'LB')) {
       return 'LB'
     }
   }
@@ -114,36 +112,22 @@ PG.Rule.cardsAbove = function (handCards, turnCards) {
   return ''
 }
 
-PG.Rule.discard = function () {
-  oneRule = PG.RuleList['bomb']
-  for (i = 0; i < oneRule.length; i++) {
-    if (this.containsAll(handCards, oneRule[i])) {
-      return oneRule[i]
-    }
-  }
-  if (this.containsAll(handCards, 'LB')) {
-    return 'LB'
-  }
-}
-
 PG.Rule.bestShot = function (handCards) {
-  let oneRule
-  let i
   handCards.sort(this.sorter)
-  let shot = ''
-  const len = this._CardsType.length
-  for (i = 2; i < len; i++) {
-    oneRule = PG.RuleList[this._CardsType[i]]
-    for (let j = 0; j < oneRule.length; j++) {
+  var shot = ''
+  var len = this._CardsType.length
+  for (var i = 2; i < len; i++) {
+    var oneRule = PG.RuleList[this._CardsType[i]]
+    for (var j = 0; j < oneRule.length; j++) {
       if (oneRule[j].length > shot.length && this.containsAll(handCards, oneRule[j])) {
         shot = oneRule[j]
       }
     }
   }
 
-  if (shot === '') {
+  if (shot == '') {
     oneRule = PG.RuleList['bomb']
-    for (i = 0; i < oneRule.length; i++) {
+    for (var i = 0; i < oneRule.length; i++) {
       if (this.containsAll(handCards, oneRule[i])) {
         return oneRule[i]
       }
@@ -159,9 +143,9 @@ PG.Rule._CardsType = [
   'bomb',
   'single',
   'pair',
-  'triplet',
-  'triplet_pair',
-  'triplet_single',
+  'trio',
+  'trio_pair',
+  'trio_single',
   'seq_single5',
   'seq_single6',
   'seq_single7',
@@ -178,36 +162,34 @@ PG.Rule._CardsType = [
   'seq_pair8',
   'seq_pair9',
   'seq_pair10',
-  'seq_triplet2',
-  'seq_triplet3',
-  'seq_triplet4',
-  'seq_triplet5',
-  'seq_triplet6',
-  'seq_triplet_pair2',
-  'seq_triplet_pair3',
-  'seq_triplet_pair4',
-  'seq_triplet_pair5',
-  'seq_triplet_single2',
-  'seq_triplet_single3',
-  'seq_triplet_single4',
-  'seq_triplet_single5',
+  'seq_trio2',
+  'seq_trio3',
+  'seq_trio4',
+  'seq_trio5',
+  'seq_trio6',
+  'seq_trio_pair2',
+  'seq_trio_pair3',
+  'seq_trio_pair4',
+  'seq_trio_pair5',
+  'seq_trio_single2',
+  'seq_trio_single3',
+  'seq_trio_single4',
+  'seq_trio_single5',
   'bomb_pair',
   'bomb_single',
 ]
 
 PG.Rule.sorter = function (a, b) {
-  const card_str = '3456789TJQKA2LB'
+  var card_str = '3456789TJQKA2LB'
   return card_str.indexOf(a) - card_str.indexOf(b)
 }
 
 PG.Rule.index_of = function (array, ele) {
-  if (array[0].length !== ele.length) {
+  if (array[0].length != ele.length) {
     return -1
   }
-  let i = 0,
-    l = array.length
-  for (; i < l; i++) {
-    if (array[i] === ele) {
+  for (var i = 0, l = array.length; i < l; i++) {
+    if (array[i] == ele) {
       return i
     }
   }
@@ -215,12 +197,10 @@ PG.Rule.index_of = function (array, ele) {
 }
 
 PG.Rule.containsAll = function (parent, child) {
-  let index = 0
-  let i = 0,
-    l = child.length
-  for (; i < l; i++) {
+  var index = 0
+  for (var i = 0, l = child.length; i < l; i++) {
     index = parent.indexOf(child[i], index)
-    if (index === -1) {
+    if (index == -1) {
       return false
     }
     index += 1
@@ -234,15 +214,15 @@ PG.Rule.cardsValue = function (cards) {
     cards = cards.join('')
   }
 
-  if (cards === 'LB') return ['rocket', 2000]
-
-  let index = this.index_of(PG.RuleList['bomb'], cards)
+  if (cards == 'LB') return ['rocket', 2000]
+  console.log("cardsValue",PG.Poker.toCards(cards))
+  var index = this.index_of(PG.RuleList['bomb'], cards)
   if (index >= 0) return ['bomb', 1000 + index]
 
-  const length = this._CardsType.length
-  for (let i = 2; i < length; i++) {
-    const typeName = this._CardsType[i]
-    index = this.index_of(PG.RuleList[typeName], cards)
+  var length = this._CardsType.length
+  for (var i = 2; i < length; i++) {
+    var typeName = this._CardsType[i]
+    var index = this.index_of(PG.RuleList[typeName], cards)
     if (index >= 0) return [typeName, index]
   }
   console.log('Error: UNKNOWN TYPE ', cards)
@@ -250,20 +230,20 @@ PG.Rule.cardsValue = function (cards) {
 }
 
 PG.Rule.compare = function (cardsA, cardsB) {
-  if (cardsA.length === 0 && cardsB.length === 0) {
+  if (cardsA.length == 0 && cardsB.length == 0) {
     return 0
   }
-  if (cardsA.length === 0) {
+  if (cardsA.length == 0) {
     return -1
   }
-  if (cardsB.length === 0) {
+  if (cardsB.length == 0) {
     return 1
   }
 
-  const valueA = this.cardsValue(cardsA)
-  const valueB = this.cardsValue(cardsB)
+  var valueA = this.cardsValue(cardsA)
+  var valueB = this.cardsValue(cardsB)
 
-  if (valueA[1] < 1000 && valueB[1] < 1000 && valueA[0] !== valueB[0]) {
+  if (valueA[1] < 1000 && valueB[1] < 1000 && valueA[0] != valueB[0]) {
     console.log('Error: Compare ', cardsA, cardsB)
   }
 
@@ -271,15 +251,15 @@ PG.Rule.compare = function (cardsA, cardsB) {
 }
 
 PG.Rule.shufflePoker = function () {
-  const pokers = []
-  for (let i = 0; i < 54; i++) {
+  var pokers = []
+  for (var i = 0; i < 54; i++) {
     pokers.push(i)
   }
 
-  let currentIndex = pokers.length,
+  var currentIndex = pokers.length,
     temporaryValue,
     randomIndex
-  while (0 !== currentIndex) {
+  while (0 != currentIndex) {
     randomIndex = Math.floor(Math.random() * currentIndex)
     currentIndex -= 1
 

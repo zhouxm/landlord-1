@@ -243,7 +243,7 @@ func CardsAbove(handsNum, lastShotNum []int) (aboveNum []int) {
 
 // 根据sep，生成长度为num的顺子集合
 func generateSeq(num int, seq []string) (res []string) {
-	for i:= range seq {
+	for i := range seq {
 		if i+num > 12 {
 			break
 		}

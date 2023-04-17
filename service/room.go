@@ -50,9 +50,9 @@ func (r *Room) NewTable(client *ClientController) (table *Table) {
 	defer r.Lock.Unlock()
 	RoomManagers.TableIdInc = RoomManagers.TableIdInc + 1
 	table = &Table{
-		TableId:      RoomManagers.TableIdInc,
-		Creator:      client,
-		TableClients: make(map[int]*ClientController, 3),
+		TableId: RoomManagers.TableIdInc,
+		Creator: client,
+		Clients: make(map[int]*ClientController, 3),
 		GameManage: &GameManage{
 			FirstCallScore: client,
 			Multiple:       1,

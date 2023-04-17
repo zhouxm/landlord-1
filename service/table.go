@@ -21,16 +21,16 @@ const (
 )
 
 type Table struct {
-	Lock         sync.RWMutex
-	TableId      TableId
-	State        int
-	Creator      *ClientController
-	TableClients map[int]*ClientController
-	GameManage   *GameManage
+	Lock       sync.RWMutex
+	TableId    TableId
+	State      int
+	Creator    *ClientController
+	Clients    map[int]*ClientController
+	GameManage *GameManage
 }
 
 func (table *Table) AllCalled() bool {
-	for _, client := range table.TableClients {
+	for _, client := range table.Clients {
 		if !client.IsCalled {
 			return false
 		}
@@ -42,22 +42,22 @@ func (table *Table) AllCalled() bool {
 func (table *Table) GameOver(client *ClientController) {
 	coin := table.Creator.Room.EntranceFee * table.GameManage.MaxCallScore * table.GameManage.Multiple
 	table.State = GameEnd
-	for _, c := range table.TableClients {
-		res := []interface{}{RepGameOver, client.User.Id}
+	for _, c := range table.Clients {
+		message := []interface{}{RspGameOver, client.User.Id}
 		if client == c {
-			res = append(res, coin*2-100)
+			message = append(message, coin*2-100)
 		} else {
-			res = append(res, coin)
+			message = append(message, coin)
 		}
-		for _, cc := range table.TableClients {
+		for _, cc := range table.Clients {
 			if cc != c {
 				userPokers := make([]int, 0, len(cc.HandPokers)+1)
 				userPokers = append(append(userPokers, cc.User.Id), cc.HandPokers...)
-				res = append(res, userPokers)
+				message = append(message, userPokers)
 			}
 		}
-		logs.Debug("gameOver SendMsg:%v", res)
-		c.SendMsg(res)
+		logs.Debug("gameOver SendMsg:%v", message)
+		c.SendMessageToClient(message)
 	}
 	logs.Debug("table[%d] game over", table.TableId)
 }
@@ -77,10 +77,10 @@ func (table *Table) CallEnd() {
 	for poker := range table.GameManage.Pokers {
 		landLord.HandPokers = append(landLord.HandPokers, poker)
 	}
-	res := []interface{}{RepShowPoker, landLord.User.Id, table.GameManage.Pokers}
-	for _, c := range table.TableClients {
-		logs.Debug("callEnd SendMsg:%v", res)
-		c.SendMsg(res)
+	message := []interface{}{RspShowPoker, landLord.User.Id, table.GameManage.Pokers}
+	for _, c := range table.Clients {
+		logs.Debug("callEnd SendMsg:%v", message)
+		c.SendMessageToClient(message)
 	}
 }
 
@@ -88,27 +88,27 @@ func (table *Table) CallEnd() {
 func (table *Table) JoinTable(c *ClientController) {
 	table.Lock.Lock()
 	defer table.Lock.Unlock()
-	if len(table.TableClients) > 2 {
-		logs.Error("Player[%d] JOIN Table[%d] FULL", c.User.Id, table.TableId)
+	if len(table.Clients) > 2 {
+		logs.Error("Player[%d] Join Table[%d] FULL", c.User.Id, table.TableId)
 		return
 	}
-	logs.Debug("Player:[%v] id [%v] request join table", c.User.Username, c.User.Id)
-	if _, ok := table.TableClients[c.User.Id]; ok {
+	logs.Debug("Player:[%v] id [%v] Request Join Table", c.User.Username, c.User.Id)
+	if _, ok := table.Clients[c.User.Id]; ok {
 		logs.Error("Player:[%v] id [%v] already in this table", c.User.Username, c.User.Id)
 		return
 	}
 
 	c.Table = table
 	c.Ready = true
-	for _, client := range table.TableClients {
+	for _, client := range table.Clients {
 		if client.Next == nil {
 			client.Next = c
 			break
 		}
 	}
-	table.TableClients[c.User.Id] = c
+	table.Clients[c.User.Id] = c
 	table.SyncUser()
-	if len(table.TableClients) == 3 {
+	if len(table.Clients) == 3 {
 		c.Next = table.Creator
 		table.State = GameCallScore
 		table.dealPoker()
@@ -122,7 +122,7 @@ func (table *Table) JoinTable(c *ClientController) {
 func (table *Table) addRobot(room *Room) {
 	robot := fmt.Sprintf("ROBOT-%d", table.getRobotID())
 	logs.Debug("Player [%v] join table", robot)
-	if len(table.TableClients) < 3 {
+	if len(table.Clients) < 3 {
 		client := &ClientController{
 			Room:       room,
 			HandPokers: make([]int, 0, 21),
@@ -135,7 +135,7 @@ func (table *Table) addRobot(room *Room) {
 			ToRobot:  make(chan []interface{}, 3),
 			ToServer: make(chan []interface{}, 3),
 		}
-		go client.RunRobot()
+		go client.RecvRobotChannelMessage()
 		table.JoinTable(client)
 	}
 }
@@ -147,7 +147,7 @@ func (table *Table) getRobotID() (robot int) {
 	robot = rand.Intn(10000)
 	table.Lock.RLock()
 	defer table.Lock.RUnlock()
-	if _, ok := table.TableClients[robot]; ok {
+	if _, ok := table.Clients[robot]; ok {
 		return table.getRobotID()
 	}
 	return
@@ -155,33 +155,35 @@ func (table *Table) getRobotID() (robot int) {
 
 // 发牌
 func (table *Table) dealPoker() {
-	logs.Debug("deal poker")
 	table.GameManage.Pokers = make([]int, 0)
 	for i := 0; i < 54; i++ {
 		table.GameManage.Pokers = append(table.GameManage.Pokers, i)
 	}
 	table.ShufflePokers()
 	for i := 0; i < 17; i++ {
-		for _, client := range table.TableClients {
+		for _, client := range table.Clients {
 			client.HandPokers = append(client.HandPokers, table.GameManage.Pokers[len(table.GameManage.Pokers)-1])
 			table.GameManage.Pokers = table.GameManage.Pokers[:len(table.GameManage.Pokers)-1]
 		}
 	}
 	message := make([]interface{}, 0, 3)
-	message = append(append(append(message, RepDealPoker), table.GameManage.FirstCallScore.User.Id), nil)
-	for _, client := range table.TableClients {
+	message = append(message, RspDealPoker)
+	message = append(message, table.GameManage.FirstCallScore.User.Id)
+	message = append(message, nil)
+
+	for _, client := range table.Clients {
 		sort.Ints(client.HandPokers)
 		message[len(message)-1] = client.HandPokers
-		logs.Debug("DealPoker: Client:%v hand:%v SendMsg:%v", client.User.Username, toPokers(client.HandPokers), message)
-		client.SendMsg(message)
+		logs.Debug("DealPoker: [%v] hand:[%v] SendMsg:%v", client.User.Username, toPokers(client.HandPokers), message)
+		client.SendMessageToClient(message)
 	}
 }
 
 func (table *Table) Chat(client *ClientController, msg string) {
-	res := []interface{}{RepChat, client.User.Id, msg}
-	for _, c := range table.TableClients {
-		logs.Debug("chat SendMsg:%v", res)
-		c.SendMsg(res)
+	message := []interface{}{RspChat, client.User.Id, msg}
+	for _, c := range table.Clients {
+		logs.Debug("chat SendMsg:%v", message)
+		c.SendMessageToClient(message)
 	}
 }
 
@@ -198,13 +200,13 @@ func (table *Table) Reset() {
 	}
 	table.State = GameCallScore
 	if table.Creator != nil {
-		logs.Debug("reset table.Creator.SendMsg:%v", []interface{}{RepRestart})
-		table.Creator.SendMsg([]interface{}{RepRestart})
+		logs.Debug("reset table.Creator.SendMsg:%v", []interface{}{RspRestart})
+		table.Creator.SendMessageToClient([]interface{}{RspRestart})
 	}
-	for _, c := range table.TableClients {
+	for _, c := range table.Clients {
 		c.Reset()
 	}
-	if len(table.TableClients) == 3 {
+	if len(table.Clients) == 3 {
 		table.dealPoker()
 	}
 }
@@ -212,7 +214,6 @@ func (table *Table) Reset() {
 // ShufflePokers
 // 洗牌
 func (table *Table) ShufflePokers() {
-	logs.Debug("ShufflePokers")
 	r := rand.New(rand.NewSource(time.Now().Unix()))
 	i := len(table.GameManage.Pokers)
 	for i > 0 {
@@ -224,241 +225,17 @@ func (table *Table) ShufflePokers() {
 
 // SyncUser 同步用户信息
 func (table *Table) SyncUser() {
-	logs.Debug("sync user")
 	response := make([]interface{}, 0, 3)
-	response = append(append(response, RepJoinTable), table.TableId)
+	response = append(append(response, RspJoinTable), table.TableId)
 	tableUsers := make([][2]interface{}, 0, 2)
 	current := table.Creator
-	for i := 0; i < len(table.TableClients); i++ {
+	for i := 0; i < len(table.Clients); i++ {
 		tableUsers = append(tableUsers, [2]interface{}{current.User.Id, current.User.Username})
 		current = current.Next
 	}
 	response = append(response, tableUsers)
-	for _, client := range table.TableClients {
-		logs.Debug("syncUser SendMsg:%v", response)
-		client.SendMsg(response)
-	}
-}
-
-// WSRequest 处理websocket请求
-func WSRequest(data []interface{}, client *ClientController) {
-	defer func() {
-		if r := recover(); r != nil {
-			logs.Error("WSRequest panic:%v ", r)
-		}
-	}()
-	if len(data) < 1 {
-		return
-	}
-	req, ok := data[0].(float64)
-	if !ok {
-		logs.Error("WSRequest data[0] to float64 error, the data:%T", data[0])
-		return
-	}
-	switch req {
-	case ReqCheat:
-		if len(data) < 2 {
-			logs.Error("user [%d] request ReqCheat ,but missing user id", client.User.Id)
-			return
-		}
-
-	case ReqLogin:
-		logs.Debug("ReqLogin %v userid:%v name:%v", RepLogin, client.User.Id, client.User.Username)
-		client.SendMsg([]interface{}{RepLogin, client.User.Id, client.User.Username})
-
-	case ReqRoomList:
-		logs.Debug("ReqRoomList %v RepRoomList:%v", ReqRoomList, RepRoomList)
-		client.SendMsg([]interface{}{RepRoomList})
-
-	case ReqTableList:
-		client.SendRoomTables()
-
-	case ReqJoinRoom:
-		if len(data) < 2 {
-			logs.Error("user [%d] request join room ,but missing room id", client.User.Id)
-			return
-		}
-		var roomId int
-		if id, ok := data[1].(float64); ok {
-			roomId = int(id)
-		}
-		RoomManagers.Lock.RLock()
-		defer RoomManagers.Lock.RUnlock()
-		if room, ok := RoomManagers.Rooms[roomId]; ok {
-			client.Room = room
-			res := make([][2]int, 0)
-			for _, table := range client.Room.Tables {
-				if len(table.TableClients) < 3 {
-					res = append(res, [2]int{int(table.TableId), len(table.TableClients)})
-				}
-			}
-			logs.Debug("RepJoinRoom %v res:%v", RepJoinRoom, res)
-			client.SendMsg([]interface{}{RepJoinRoom, res})
-		}
-
-	case ReqNewTable:
-		table := client.Room.NewTable(client)
-		table.JoinTable(client)
-
-	case ReqJoinTable:
-		if len(data) < 2 {
-			return
-		}
-		var tableId TableId
-		if id, ok := data[1].(float64); ok {
-			tableId = TableId(id)
-		}
-		if client.Room == nil {
-			return
-		}
-		client.Room.Lock.RLock()
-		defer client.Room.Lock.RUnlock()
-
-		if table, ok := client.Room.Tables[tableId]; ok {
-			table.JoinTable(client)
-		}
-		client.SendRoomTables()
-	case ReqDealPoker:
-		if client.Table.State == GameEnd {
-			client.Ready = true
-		}
-	case ReqCallScore:
-		logs.Debug("[%v] ReqCallScore %v", client.User.Username, data)
-		client.Table.Lock.Lock()
-		defer client.Table.Lock.Unlock()
-
-		if client.Table.State != GameCallScore {
-			logs.Debug("game call score at run time ,%v", client.Table.State)
-			return
-		}
-		if client.Table.GameManage.Turn == client || client.Table.GameManage.FirstCallScore == client {
-			client.Table.GameManage.Turn = client.Next
-		} else {
-			logs.Debug("user [%v] call score turn err ")
-		}
-		if len(data) < 2 {
-			return
-		}
-		var score int
-		if s, ok := data[1].(float64); ok {
-			score = int(s)
-		}
-
-		if score > 0 && score < client.Table.GameManage.MaxCallScore || score > 3 {
-			logs.Error("player[%d] call score[%d] cheat", client.User.Id, score)
-			return
-		}
-		if score > client.Table.GameManage.MaxCallScore {
-			client.Table.GameManage.MaxCallScore = score
-			client.Table.GameManage.MaxCallScoreTurn = client
-		}
-		client.IsCalled = true
-		callEnd := score == 3 || client.Table.AllCalled()
-		userCall := []interface{}{RepCallScore, client.User.Id, score, callEnd}
-		for _, c := range client.Table.TableClients {
-			logs.Debug("ReqCallScore response:%v", userCall)
-			c.SendMsg(userCall)
-		}
-		if callEnd {
-			logs.Debug("call score end")
-			client.Table.CallEnd()
-		}
-	case ReqShotPoker:
-		logs.Debug("user [%v] ReqShotPoker %v", client.User.Username, data)
-		client.Table.Lock.Lock()
-		defer func() {
-			client.Table.GameManage.Turn = client.Next
-			client.Table.Lock.Unlock()
-		}()
-
-		if client.Table.GameManage.Turn != client {
-			logs.Error("shot poker err,not your [%d] turn .[%d]", client.User.Id, client.Table.GameManage.Turn.User.Id)
-			return
-		}
-		if len(data) > 1 {
-			if pokers, ok := data[1].([]interface{}); ok {
-				shotPokers := make([]int, 0, len(pokers))
-				for _, item := range pokers {
-					if i, ok := item.(float64); ok {
-						poker := int(i)
-						inHand := false
-						for _, handPoker := range client.HandPokers {
-							if handPoker == poker {
-								inHand = true
-								break
-							}
-						}
-						if inHand {
-							shotPokers = append(shotPokers, poker)
-						} else {
-							logs.Warn("player[%d] play non-exist poker", client.User.Id)
-							res := []interface{}{RepShotPoker, client.User.Id, []int{}}
-							for _, c := range client.Table.TableClients {
-								logs.Debug("ReqShotPoker response:%v", res)
-								c.SendMsg(res)
-							}
-							return
-						}
-					}
-				}
-				if len(shotPokers) > 0 {
-					compareRes, isMulti := ComparePoker(client.Table.GameManage.LastShotPoker, shotPokers)
-					if client.Table.GameManage.LastShotClient != client && compareRes < 1 {
-						logs.Warn("player[%d] shot poker %v small than last shot poker %v ", client.User.Id, shotPokers, client.Table.GameManage.LastShotPoker)
-						res := []interface{}{RepShotPoker, client.User.Id, []int{}}
-						for _, c := range client.Table.TableClients {
-							logs.Debug("ReqShotPoker response:%v", res)
-							c.SendMsg(res)
-						}
-						return
-					}
-					if isMulti {
-						client.Table.GameManage.Multiple *= 2
-					}
-					client.Table.GameManage.LastShotClient = client
-					client.Table.GameManage.LastShotPoker = shotPokers
-					for _, shotPoker := range shotPokers {
-						for i, poker := range client.HandPokers {
-							if shotPoker == poker {
-								copy(client.HandPokers[i:], client.HandPokers[i+1:])
-								client.HandPokers = client.HandPokers[:len(client.HandPokers)-1]
-								break
-							}
-						}
-					}
-				}
-				res := []interface{}{RepShotPoker, client.User.Id, shotPokers}
-				logs.Debug("ReqShotPoker response:%v", res)
-				for _, c := range client.Table.TableClients {
-					c.SendMsg(res)
-				}
-				if len(client.HandPokers) == 0 {
-					client.Table.GameOver(client)
-				}
-			}
-		}
-
-		//case ReqGameOver:
-	case ReqChat:
-		if len(data) > 1 {
-			switch data[1].(type) {
-			case string:
-				client.Table.Chat(client, data[1].(string))
-			}
-		}
-	case ReqRestart:
-		client.Table.Lock.Lock()
-		defer client.Table.Lock.Unlock()
-
-		if client.Table.State == GameEnd {
-			client.Ready = true
-			for _, c := range client.Table.TableClients {
-				if c.Ready == false {
-					return
-				}
-			}
-			logs.Debug("restart")
-			client.Table.Reset()
-		}
+	for _, client := range table.Clients {
+		logs.Debug("SyncUser SendMsg:%v", response)
+		client.SendMessageToClient(response)
 	}
 }
