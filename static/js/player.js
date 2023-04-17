@@ -177,17 +177,17 @@ PG.Player.prototype.hint = function (lastTurnPoker) {
 };
 
 PG.Player.prototype.canPlay = function (lastTurnPoker, shotPoker) {
-    var cardsA = PG.Poker.toCards(shotPoker);
-    var valueA = PG.Rule.cardsValue(cardsA);
+    const cardsA = PG.Poker.toCards(shotPoker);
+    const valueA = PG.Rule.cardsValue(cardsA);
     if (!valueA[0]){
         return '出牌不合法';
     }
     var cardsB = PG.Poker.toCards(lastTurnPoker);
-    if (cardsB.length == 0) {
+    if (cardsB.length === 0) {
         return '';
     }
     var valueB = PG.Rule.cardsValue(cardsB);
-    if (valueA[0] != valueB[0] && valueA[1] < 1000) {
+    if (valueA[0] !== valueB[0] && valueA[1] < 1000) {
         return '出牌类型跟上家不一致';
     }
 
