@@ -115,7 +115,7 @@ CanvasRenderingContext2D.prototype.drawPokerCard = function(x, y, size, suit, po
  *     canvas.drawPokerBack (375, 400, 100, '#2E319C', '#7A7BB8');
  */
 CanvasRenderingContext2D.prototype.drawPokerBack = function(x, y, size, foregroundColor, backgroundColor) {
-    var ax = function(n) {
+    let ax = function(n) {
         return x + n * size / 200;
     }, ay = function(n) {
         return y + n * size / 200;
@@ -249,7 +249,7 @@ CanvasRenderingContext2D.prototype.fillRoundRect = function(x, y, width, height,
  *     canvas.svgCurve ('M100,30C60,7 0,7 0,76C0,131 100,190 100,190C100,190 200,131 200,76C200,7 140,7 100,30z', 0, 0, 200));
  */
 CanvasRenderingContext2D.prototype.svgCurve = function(x, y, size, svgPath) {
-    var relativeX, relativeY, pathNumber, pathArray, svgPathArray, ax = function(n) {
+    let relativeX, relativeY, pathNumber, pathArray, svgPathArray, ax = function(n) {
         return ( relativeX = x + n * size / 200);
     }, ay = function(n) {
         return ( relativeY = y + n * size / 200);
@@ -354,7 +354,7 @@ CanvasRenderingContext2D.prototype.fillPokerSymbol = function(x, y, size, symbol
  *     canvas.drawPokerCrown(0, 0, 200);
  */
 CanvasRenderingContext2D.prototype.drawPokerCrown = function(x, y, size, startColor, endColor, fillColor) {
-    var fillLinGrad, ax = function(n) {
+    let fillLinGrad, ax = function(n) {
         return x + n * size / 200;
     }, ay = function(n) {
         return y + n * size / 200;
@@ -398,7 +398,7 @@ CanvasRenderingContext2D.prototype.drawPokerCrown = function(x, y, size, startCo
  *     canvas.drawEmptyCard(0, 0, 200);
  */
 CanvasRenderingContext2D.prototype.drawEmptyCard = function(x, y, size) {
-    var fillLinGrad, ax = function(n) {
+    let fillLinGrad, ax = function(n) {
         return x + n * size / 200;
     }, ay = function(n) {
         return y + n * size / 200;
@@ -433,7 +433,7 @@ window.Poker = {
      *     document.body.appendChild(Poker.getCardImage(100, 'h', 'Q'));
      */
     getCardImage: function(size, suit, point) {
-        var image = document.createElement('img');
+        let image = document.createElement('img');
         image.src = this.getCardData(size, suit, point);
         return image;
     },
@@ -451,7 +451,7 @@ window.Poker = {
      *     'O'(letter O) is abbreviation of 'JOKER'
      * @return {string} imageData
      * @example
-     *     var imgData = Poker.getCardData(100, 'h', 'Q');
+     *     let imgData = Poker.getCardData(100, 'h', 'Q');
      */
     getCardData: function(size, suit, point) {
         return this.getCardCanvas(size, suit, point).toDataURL();
@@ -468,7 +468,7 @@ window.Poker = {
      *   document.body.appendChild(Poker.getBackImage(300, '#2E319C', '#7A7BB8'));
      */
     getBackImage: function(size, foregroundColor, backgroundColor) {
-        var image = document.createElement('img');
+        let image = document.createElement('img');
         image.src = this.getBackData(size, foregroundColor, backgroundColor);
         return image;
     },
@@ -481,7 +481,7 @@ window.Poker = {
      * @param {string} [backgroundColor='#AA2222'] - Background color.
      * @return {string} imageData
      * @example
-     *   var imageData = Poker.getBackCanvas(300, '#2E319C', '#7A7BB8');
+     *   let imageData = Poker.getBackCanvas(300, '#2E319C', '#7A7BB8');
      */
     getBackData: function(size, foregroundColor, backgroundColor) {
         return this.getBackCanvas(size, foregroundColor, backgroundColor).toDataURL();

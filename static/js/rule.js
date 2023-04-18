@@ -21,10 +21,10 @@ PG.Poker.comparePoker = function (a, b) {
   }
   a = a % 13
   b = b % 13
-  if (a == 1 || a == 0) {
+  if (a === 1 || a === 0) {
     a += 13
   }
-  if (b == 1 || b == 0) {
+  if (b === 1 || b === 0) {
     b += 13
   }
   return -(a - b)
@@ -49,17 +49,17 @@ PG.Poker.toCards = function (pokers) {
 }
 
 PG.Poker.canCompare = function (pokersA, pokersB) {
-  var cardsA = this.toCards(pokersA)
-  var cardsB = this.toCards(pokersB)
-  return PG.Rule.cardsValue(cardsA)[0] == PG.Rule.cardsValue(cardsB)[0]
+  const cardsA = this.toCards(pokersA);
+  const cardsB = this.toCards(pokersB);
+  return PG.Rule.cardsValue(cardsA)[0] === PG.Rule.cardsValue(cardsB)[0]
 }
 
 PG.Poker.toPokers = function (pokerInHands, cards) {
-  var pokers = []
-  for (var i = 0; i < cards.length; i++) {
-    var candidates = this.toPoker(cards[i])
-    for (var j = 0; j < candidates.length; j++) {
-      if (pokerInHands.indexOf(candidates[j]) != -1 && pokers.indexOf(candidates[j]) == -1) {
+  let pokers = [];
+  for (let i = 0; i < cards.length; i++) {
+    let candidates = this.toPoker(cards[i])
+    for (let j = 0; j < candidates.length; j++) {
+      if (pokerInHands.indexOf(candidates[j]) !== -1 && pokers.indexOf(candidates[j]) === -1) {
         pokers.push(candidates[j])
         break
       }
@@ -242,10 +242,10 @@ PG.Rule.compare = function (cardsA, cardsB) {
     return 1
   }
 
-  var valueA = this.cardsValue(cardsA)
-  var valueB = this.cardsValue(cardsB)
+  const valueA = this.cardsValue(cardsA);
+  const valueB = this.cardsValue(cardsB);
 
-  if (valueA[1] < 1000 && valueB[1] < 1000 && valueA[0] != valueB[0]) {
+  if (valueA[1] < 1000 && valueB[1] < 1000 && valueA[0] !== valueB[0]) {
     console.log('Error: Compare ', cardsA, cardsB)
   }
 
@@ -253,15 +253,15 @@ PG.Rule.compare = function (cardsA, cardsB) {
 }
 
 PG.Rule.shufflePoker = function () {
-  var pokers = []
-  for (var i = 0; i < 54; i++) {
+  const pokers = [];
+  for (let i = 0; i < 54; i++) {
     pokers.push(i)
   }
 
-  var currentIndex = pokers.length,
-    temporaryValue,
-    randomIndex
-  while (0 != currentIndex) {
+  let currentIndex = pokers.length,
+      temporaryValue,
+      randomIndex;
+  while (0 !== currentIndex) {
     randomIndex = Math.floor(Math.random() * currentIndex)
     currentIndex -= 1
 
