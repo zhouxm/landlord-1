@@ -11,9 +11,9 @@ import (
 )
 
 var (
-	TotalCards   = "A23456789TJQK"
-	Pokers       = make(map[string]*Combination, 16384)
-	TypeToPokers = make(map[string][]*Combination, 38)
+	TotalCards        = "A23456789TJQK"
+	LegalCombinations = make(map[string]*Combination, 16384)
+	TypeToPokers      = make(map[string][]*Combination, 38)
 )
 
 const (
@@ -67,7 +67,7 @@ func init() {
 				Score: score,
 				Poker: cards,
 			}
-			Pokers[cards] = p
+			LegalCombinations[cards] = p
 			TypeToPokers[comboType] = append(TypeToPokers[comboType], p)
 		}
 	}
@@ -108,15 +108,15 @@ func isContains(parent, child string) (result bool) {
 	return true
 }
 
-// toPokers 将牌编号转换为扑克牌
-func toPokers(num []int) string {
+// numberToPokers 将牌编号转换为扑克牌 eg: 52 53 -> LB
+func numberToPokers(num []int) string {
 
 	res := make([]byte, 0)
 	for _, poker := range num {
 		if poker == 52 {
-			res = append(res, 'B')
-		} else if poker == 53 {
 			res = append(res, 'L')
+		} else if poker == 53 {
+			res = append(res, 'B')
 		} else {
 			res = append(res, TotalCards[poker%13])
 		}
@@ -124,12 +124,12 @@ func toPokers(num []int) string {
 	return string(res)
 }
 
-// toPoker 将牌转换为编号
-func toPoker(card byte) (poker []int) {
-	if card == 'B' {
+// pokerToNumber 将牌转换为编号
+func pokerToNumber(card byte) (poker []int) {
+	if card == 'L' {
 		return []int{52}
 	}
-	if card == 'L' {
+	if card == 'B' {
 		return []int{53}
 	}
 	for i, c := range []byte(TotalCards) {
@@ -152,7 +152,7 @@ func pokersInHand(num []int, findPokers string) (pokers []int) {
 	}
 
 	for _, poker := range findPokers {
-		poker := toPoker(byte(poker))
+		poker := pokerToNumber(byte(poker))
 	out:
 		for _, pItem := range poker {
 			for _, n := range num {
@@ -168,7 +168,7 @@ func pokersInHand(num []int, findPokers string) (pokers []int) {
 
 // 获得牌型和大小
 func pokersValue(pokers string) (cardType string, score int) {
-	if combination, ok := Pokers[sortPokers(pokers)]; ok {
+	if combination, ok := LegalCombinations[sortPokers(pokers)]; ok {
 		cardType = combination.Type
 		score = combination.Score
 	}
@@ -185,7 +185,7 @@ func ComparePoker(baseNum, comparedNum []int) (int, bool) {
 			if len(baseNum) != 0 {
 				return -1, false
 			} else {
-				comparedType, _ := pokersValue(toPokers(comparedNum))
+				comparedType, _ := pokersValue(numberToPokers(comparedNum))
 				if comparedType == rocket || comparedType == bomb {
 					return 1, true
 				}
@@ -193,8 +193,8 @@ func ComparePoker(baseNum, comparedNum []int) (int, bool) {
 			}
 		}
 	}
-	baseType, baseScore := pokersValue(toPokers(baseNum))
-	comparedType, comparedScore := pokersValue(toPokers(comparedNum))
+	baseType, baseScore := pokersValue(numberToPokers(baseNum))
+	comparedType, comparedScore := pokersValue(numberToPokers(comparedNum))
 	logs.Debug("compare poker %v, %v, %v, %v", baseType, baseScore, comparedType, comparedScore)
 	if baseType == comparedType {
 		return comparedScore - baseScore, false
@@ -213,8 +213,8 @@ func ComparePoker(baseNum, comparedNum []int) (int, bool) {
 
 // CardsAbove 查找手牌中是否有比被比较牌型大的牌
 func CardsAbove(handsNum, lastShotNum []int) (aboveNum []int) {
-	handCards := toPokers(handsNum)
-	turnCards := toPokers(lastShotNum)
+	handCards := numberToPokers(handsNum)
+	turnCards := numberToPokers(lastShotNum)
 	cardType, cardScore := pokersValue(turnCards)
 	logs.Debug("CardsAbove hands:%v ,lastShot:%v, handCards %v,cardType %v,turnCards %v",
 		handsNum, lastShotNum, handCards, cardType, turnCards)
@@ -293,6 +293,7 @@ func generate(path string) map[string][]string {
 	rule[triplet] = []string{}
 	rule[bomb] = []string{}
 	for _, c := range TotalCards {
+		// c int32  c:65 c type:int32 card:A
 		card := string(c)
 		rule[single] = append(rule[single], card)
 		rule[pair] = append(rule[pair], card+card)

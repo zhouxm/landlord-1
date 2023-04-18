@@ -174,7 +174,7 @@ func (table *Table) dealPoker() {
 	for _, client := range table.Clients {
 		sort.Ints(client.HandPokers)
 		message[len(message)-1] = client.HandPokers
-		logs.Debug("DealPoker: [%v] hand:[%v] SendMsg:%v", client.User.Username, toPokers(client.HandPokers), message)
+		logs.Debug("DealPoker: [%v] hand:[%v] SendMsg:%v", client.User.Username, numberToPokers(client.HandPokers), message)
 		client.SendMessageToClient(message)
 	}
 }
